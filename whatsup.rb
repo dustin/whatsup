@@ -59,6 +59,8 @@ def check_result(server, watch, res)
   elsif watch.status.nil?
     report_status server, watch, res, check_matches(server, watch, res),
       "Started watching #{watch.url} -- status is #{res.status} (#{res.message})"
+  else
+    res.status.to_i
   end
 end
 
