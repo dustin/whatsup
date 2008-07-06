@@ -53,6 +53,16 @@ module Whatsup
         Watch.create! :user => user, :url => url
       end
 
+      cmd :on, "Enable all watches for you " do |user, nothing|
+        user.update_attributes(:active => true)
+        send_msg user, "Marked you active."
+      end
+
+      cmd :off, "Disable all watches for you" do |user, nothing|
+        user.update_attributes(:active => false)
+        send_msg user, "Marked you inactive."
+      end
+
     end # CommandProcessor
 
   end
