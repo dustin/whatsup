@@ -25,7 +25,11 @@ module Whatsup
       end
 
       def dispatch(cmd, user, arg)
-        self.send cmd.to_sym, user, arg
+        if self.respond_to? cmd
+          self.send cmd.to_sym, user, arg
+        else
+          send_msg user, "I don't understand #{cmd}.  Send `help' for what I do know."
+        end
       end
 
       def send_msg(user, text)
