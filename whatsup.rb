@@ -49,7 +49,8 @@ def run_loop(server)
   process_watches server
   sleep Whatsup::Config::LOOP_SLEEP
 rescue StandardError, Interrupt
-  puts "Got exception:  #{$!.inspect}"
+  puts "Got exception:  #{$!.inspect}\n#{$!.backtrace.join("\n\t")}"
+  $stdout.flush
   sleep 5
 end
 
