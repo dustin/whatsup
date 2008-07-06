@@ -28,7 +28,8 @@ end
 
 def process_watches(server)
   Watch.todo(Whatsup::Config::CONF['general'].fetch('watch_freq', 10)).each do |watch|
-    puts "Fetching #{watch.url}"
+    puts "Fetching #{watch.url} at #{Time.now.to_s}"
+    $stdout.flush
     watch.update_attributes(:last_update => DateTime.now)
     Whatsup::Urlcheck.fetch(watch.url) do |res|
       if res.status.to_i != 200
@@ -44,8 +45,6 @@ def process_watches(server)
 end
 
 def run_loop(server)
-  puts "Processing at #{Time.now.to_s}"
-  $stdout.flush
   process_xmpp_incoming server
   process_watches server
   sleep Whatsup::Config::LOOP_SLEEP
