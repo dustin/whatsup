@@ -43,7 +43,6 @@ module Whatsup
       end
 
       def send_msg(user, text)
-        puts "Sending to #{user.jid}: #{text}"
         @jabber.deliver user.jid, text
       end
 
