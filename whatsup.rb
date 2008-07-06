@@ -38,17 +38,20 @@ def process_xmpp_incoming(server)
   server.presence_updates do |user, status, message|
     User.update_status user, status
   end
-  server.received_messages do |msg|
-    cmd, args = msg.body.split(' ', 2)
-    cp = Whatsup::Commands::CommandProcessor.new server
-    cp.dispatch cmd, User.first(:jid => msg.from.bare.to_s), args
-  end
+  # Called for dequeue side-effect stupidity of jabber:simple
+  server.received_messages
   server.new_subscriptions do |from, presence|
     puts "Subscribed by #{from}"
   end
   server.subscription_requests do |from, presence|
     puts "Sub req from #{from}"
   end
+end
+
+def process_message(server, msg)
+  cmd, args = msg.body.split(' ', 2)
+  cp = Whatsup::Commands::CommandProcessor.new server
+  cp.dispatch cmd, User.first(:jid => msg.from.bare.to_s), args
 end
 
 def check_matches(server, watch, res)
@@ -143,6 +146,11 @@ loop do
   server = Jabber::Simple.new(
     Whatsup::Config::CONF['xmpp']['jid'],
     Whatsup::Config::CONF['xmpp']['pass'])
+  # A lower-level hook to provide more realtime message processing.
+  server.client.add_message_callback do |message|
+    process_message server, message unless message.body.nil?
+  end
+
   update_status(server)
 
   puts "Set up with #{server.inspect}"
