@@ -125,9 +125,15 @@ loop do
     Whatsup::Config::CONF['xmpp']['pass'])
   # A lower-level hook to provide more realtime message processing.
   server.client.add_message_callback do |message|
-    process_xmpp_incoming server
-    update_status server
-    process_message server, message unless message.body.nil?
+    begin
+      process_xmpp_incoming server
+      update_status server
+      process_message server, message unless message.body.nil?
+    rescue StandardError, Interrupt
+      puts "Incoming message error:  #{$!}"
+      $stdout.flush
+      client.deliver message.from "Error processing your message:  #{$!}"
+    end
   end
 
   update_status(server)
