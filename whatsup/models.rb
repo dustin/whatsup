@@ -30,8 +30,10 @@ class Watch
   property :url, String, :nullable => false, :length => 1024
   property :status, Integer
   property :active, Boolean, :nullable => false, :default => true
-  belongs_to :user
   property :last_update, DateTime
+
+  belongs_to :user
+  has n, :patterns
 
   def self.todo(timeout=10)
     q=<<EOF
@@ -49,4 +51,14 @@ EOF
       DateTime.now - Rational(timeout, 1440))
     self.all(:conditions => {:id => ids})
   end
+end
+
+class Pattern
+  include DataMapper::Resource
+
+  property :id, Integer, :serial => true
+  property :positive, Boolean, :nullable => false
+  property :regex, String, :nullable => false, :length => 1024
+
+  belongs_to :watch
 end

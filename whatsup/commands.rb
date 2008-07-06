@@ -91,7 +91,28 @@ module Whatsup
         end
       end
 
+      cmd :match, "Ensure a pattern matches for a URL" do |user, args|
+        add_pattern_match user, args, true
+      end
+
+      cmd :negmatch, "Ensure a pattern does not match for a URL" do |user, args|
+        add_pattern_match user, args, false
+      end
+
       private
+
+      def add_pattern_match(user, args, positive)
+        url, pattern = args.split(' ', 2)
+        with_my_watch user, url do |watch|
+          begin
+            re = Regexp.new pattern
+            watch.patterns.create :positive => positive, :regex => pattern
+            send_msg user, "Configured a #{positive ? 'positive' : 'negative'} match pattern for #{url}"
+          rescue RegexpError
+            send_msg user, "Your regex seems broken."
+          end
+        end
+      end
 
       def with_my_watch(user, url, &block)
         watch = user.watches.first(:url => url)
