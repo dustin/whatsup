@@ -31,7 +31,8 @@ end
 def process_message(server, msg)
   cmd, args = msg.body.split(' ', 2)
   cp = Whatsup::Commands::CommandProcessor.new server
-  cp.dispatch cmd, User.first(:jid => msg.from.bare.to_s), args
+  user = User.first(:jid => msg.from.bare.to_s) || User.create(:jid => msg.from.bare.to_s)
+  cp.dispatch cmd, user, args
 end
 
 def check_matches(server, watch, res)
