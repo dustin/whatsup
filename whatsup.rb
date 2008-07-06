@@ -43,7 +43,7 @@ end
 
 def report_status(server, watch, res, match_status, default)
   if match_status.empty?
-    server.deliver watch.user.jid, default
+    server.deliver watch.user.jid, default unless default.nil?
     res.status.to_i
   else
     p = match_status.first.first
@@ -63,7 +63,7 @@ def check_result(server, watch, res)
     report_status server, watch, res, check_matches(server, watch, res),
       ":) Started watching #{watch.url} -- status is #{res.status} (#{res.message})"
   else
-    res.status.to_i
+    report_status server, watch, res, check_matches(server, watch, res), nil
   end
 end
 
