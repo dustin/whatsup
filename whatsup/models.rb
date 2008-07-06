@@ -6,6 +6,7 @@ class User
   include DataMapper::Resource
   property :id, Integer, :serial => true
   property :jid, String, :nullable => false, :length => 128
+  property :active, Boolean, :nullable => false, :default => true
   property :status, String
 
   # Find or create a user and update the status
@@ -22,6 +23,7 @@ class Watch
   property :id, Integer, :serial => true
   property :url, String, :nullable => false, :length => 1024
   property :status, Integer
+  property :active, Boolean, :nullable => false, :default => true
   belongs_to :user
   property :last_update, DateTime
 
@@ -30,12 +32,14 @@ class Watch
     select w.id
       from watches w join users on (users.id == w.user_id)
       where
-        users.status is not null
+        users.active is not null
+        and users.active = ?
         and users.status not in ('dnd', 'offline', 'unavailable')
+        and w.active = ?
         and ( w.last_update is null or w.last_update < ?)
       limit 50
 EOF
-    ids = repository(:default).adapter.query(q,
+    ids = repository(:default).adapter.query(q, true, true,
       DateTime.now - Rational(timeout, 1440))
     self.all(:conditions => {:id => ids})
   end
