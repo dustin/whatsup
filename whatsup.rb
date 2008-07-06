@@ -31,19 +31,44 @@ def process_xmpp_incoming(server)
   end
 end
 
+def check_matches(server, watch, res)
+  watch.patterns.map do |pattern|
+    re = Regexp.new pattern.regex
+    [pattern, !! re.match(res.body) == pattern.positive]
+  end.reject{|p,m| m}
+end
+
+def report_status(server, watch, res, match_status, default)
+  if match_status.empty?
+    server.deliver watch.user.jid, default
+    res.status
+  else
+    p = match_status.first.first
+    server.deliver watch.user.jid, "#{watch.url} failed to match #{p.positive ? 'positive' : 'negative'} pattern /#{p.regex}/"
+    res.status.to_i
+  end
+end
+
+def check_result(server, watch, res)
+  if res.status.to_i != 200
+    server.deliver watch.user.jid, "Error on #{watch.url}.  Status=#{res.status} (#{res.message})"
+    res.status.to_i
+  elsif watch.status != nil && res.status.to_i != watch.status.to_i
+    report_status server, watch, res, check_matches(server, watch, res),
+      "Status of #{watch.url} changed from #{watch.status} to #{res.status} (#{res.message})"
+  elsif watch.status.nil?
+    report_status server, watch, res, check_matches(server, watch, res),
+      "Started watching #{watch.url} -- status is #{res.status} (#{res.message})"
+  end
+end
+
 def process_watches(server)
   Watch.todo(Whatsup::Config::CONF['general'].fetch('watch_freq', 10)).each do |watch|
     puts "Fetching #{watch.url} at #{Time.now.to_s}"
     $stdout.flush
     watch.update_attributes(:last_update => DateTime.now)
     Whatsup::Urlcheck.fetch(watch.url) do |res|
-      if res.status.to_i != 200
-        server.deliver watch.user.jid, "Error on #{watch.url}.  Status=#{res.status} (#{res.message})"
-      elsif watch.status != nil && res.status.to_i != watch.status.to_i
-        server.deliver watch.user.jid, "Status of #{watch.url}.  Changed from #{watch.status} to #{res.status} (#{res.message})"
-      elsif watch.status.nil?
-        server.deliver watch.user.jid, "Starting to track #{watch.url}.  Current status is #{res.status} (#{res.message})"
-      end
+      status = check_result server, watch, res
       watch.update_attributes(:status => res.status)
     end
   end
