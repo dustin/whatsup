@@ -24,7 +24,17 @@ module Whatsup
         @jabber = conn
       end
 
+      def typing_notification(user)
+        @jabber.client.send("<message
+            from='#{Config::SCREEN_NAME}'
+            to='#{user.jid}'>
+            <x xmlns='jabber:x:event'>
+              <composing/>
+            </x></message>")
+      end
+
       def dispatch(cmd, user, arg)
+        typing_notification user
         if self.respond_to? cmd
           self.send cmd.to_sym, user, arg
         else
