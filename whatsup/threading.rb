@@ -8,8 +8,14 @@ module Whatsup
     def self.start_worker
       Thread.new do
         loop do
-          msg = IN_QUEUE.pop
-          msg.call
+          begin
+            msg = IN_QUEUE.pop
+            msg.call
+          rescue StandardError, Interrupt
+            puts "ERROR!  #{$!}\n#{$!.backtrace.join("\t\n")}"
+          rescue
+            puts "ERROR!  #{$!}\n#{$!.backtrace.join("\t\n")}"
+          end
         end
       end
     end
