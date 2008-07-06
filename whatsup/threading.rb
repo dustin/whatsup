@@ -3,7 +3,6 @@ require 'thread'
 module Whatsup
   module Threading
     IN_QUEUE = Queue.new
-    OUT_QUEUE = Queue.new
 
     def self.start_worker
       Thread.new do
