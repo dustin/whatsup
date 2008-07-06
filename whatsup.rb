@@ -11,7 +11,7 @@ require 'whatsup/commands'
 
 class GlobalStats
   include Singleton
-  attr_accessor :watch_count, :user_count
+  attr_accessor :watch_count, :user_count, :watching_users
 end
 
 def process_xmpp_incoming(server)
@@ -79,13 +79,14 @@ end
 def update_status(server)
   watching = Watch.count(:active => true)
   users = User.count
+  wusers = repository(:default).adapter.query('select count(distinct(user_id)) from watches').first
   stats = GlobalStats.instance
-  if watching != stats.watch_count || users != stats.user_count
-    puts "Updating status -- now watching #{watching} with #{users} URLs"
+  if watching != stats.watch_count || users != stats.user_count || wusers != stats.watching_users
+    puts "Updating status -- now watching #{watching} with #{users} users (#{wusers} watching)"
     $stdout.flush
     stats.watch_count = watching
     stats.user_count = users
-    status = "Watching around #{watching} URLs for #{users} users"
+    status = "Watching around #{watching} URLs for #{wusers} users (#{users} users known)"
     server.send!(Jabber::Presence.new(nil, status,
       Whatsup::Config::CONF['xmpp'].fetch('priority', 1).to_i))
   end
