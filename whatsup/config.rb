@@ -5,7 +5,7 @@ require 'dm-core'
 module Whatsup
   module Config
     CONF = ::YAML.load_file 'whatsup.yml'
-    TIMEOUT = CONF['general']['timeout'].to_i
+    LOOP_SLEEP = CONF['general'].fetch('loop_sleep', 1).to_i
 
     DataMapper.setup(:default, CONF['general']['db'])
   end

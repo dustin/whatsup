@@ -48,7 +48,7 @@ def run_loop(server)
   $stdout.flush
   process_xmpp_incoming server
   process_watches server
-  sleep Whatsup::Config::TIMEOUT
+  sleep Whatsup::Config::LOOP_SLEEP
 rescue StandardError, Interrupt
   puts "Got exception:  #{$!.inspect}"
   sleep 5
