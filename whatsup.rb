@@ -98,7 +98,6 @@ end
 
 def run_loop(server)
   process_xmpp_incoming server
-  update_status server
   process_watches server
   sleep Whatsup::Config::LOOP_SLEEP
 rescue StandardError, Interrupt
@@ -126,6 +125,7 @@ loop do
     Whatsup::Config::CONF['xmpp']['pass'])
   # A lower-level hook to provide more realtime message processing.
   server.client.add_message_callback do |message|
+    update_status server
     process_message server, message unless message.body.nil?
   end
 
