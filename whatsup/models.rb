@@ -35,9 +35,10 @@ class Watch
   belongs_to :user
   has n, :patterns
 
-  before :destroy do |w|
-    w.patterns.each {|p| p.destroy }
-  end
+  # XXX:  This doesn't work.  That kind of sucks.
+  # before :destroy do |w|
+  #   w.patterns.each {|p| p.destroy }
+  # end
 
   def self.todo(timeout=10)
     q=<<EOF
