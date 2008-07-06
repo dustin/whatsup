@@ -84,6 +84,13 @@ module Whatsup
         end
       end
 
+      cmd :unwatch, "Stop watching a URL" do |user, url|
+        with_my_watch user, url do |watch|
+          watch.destroy
+          send_msg user, "Stopped watching #{url}"
+        end
+      end
+
       private
 
       def with_my_watch(user, url, &block)
