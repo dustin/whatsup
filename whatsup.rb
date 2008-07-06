@@ -14,6 +14,26 @@ class GlobalStats
   attr_accessor :watch_count, :user_count, :watching_users
 end
 
+class Timer
+
+  def intialize(interval)
+    @interval = interval
+    @last_run = 0
+  end
+
+  def ready?
+    @last_run + @interval > Time.now.to_i
+  end
+
+  def ran
+    @last_run = Time.now.to_i
+  end
+
+end
+
+TODO_TIMER = Timer.new 60
+STATUS_TIMER = Timer.new 60
+
 def process_xmpp_incoming(server)
   server.presence_updates do |user, status, message|
     User.update_status user, status
@@ -74,6 +94,7 @@ def process_watches(server)
       watch.update_attributes(:status => status)
     end
   end
+  TODO_TIMER.ran
 end
 
 def update_status(server)
@@ -91,12 +112,13 @@ def update_status(server)
     server.send!(Jabber::Presence.new(nil, status,
       Whatsup::Config::CONF['xmpp'].fetch('priority', 1).to_i))
   end
+  STATUS_TIMER.ran
 end
 
 def run_loop(server)
   process_xmpp_incoming server
-  update_status server
-  process_watches server
+  update_status server if STATUS_TIMER.ready?
+  process_watches server if TODO_TIMER.ready?
   sleep Whatsup::Config::LOOP_SLEEP
 rescue StandardError, Interrupt
   puts "Got exception:  #{$!.inspect}\n#{$!.backtrace.join("\n\t")}"
