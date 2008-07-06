@@ -1,3 +1,4 @@
+require 'net/http'
 require 'whatsup/urlcheck'
 
 module Whatsup
@@ -53,12 +54,14 @@ module Whatsup
       end
 
       cmd :get, "Get a URL" do |user, url|
+        validate_url user, url or return
         Whatsup::Urlcheck.fetch(url) do |res|
           send_msg user, "Got a #{res.status} from #{url} in #{res.time}s (#{res.body.size} bytes)"
         end
       end
 
       cmd :watch, "Watch a URL" do |user, url|
+        validate_url user, url or return
         begin
           Watch.create! :user => user, :url => url
           send_msg user, "Scheduled a watch for #{url}."
@@ -140,6 +143,26 @@ module Whatsup
       end
 
       private
+
+      def validate_url(user, url)
+        u = URI.parse url
+        if u.scheme != 'http'
+          send_msg user, "Only http URLs are supported at this time."
+          return false
+        end
+        if u.host.nil?
+          send_msg user, "The URL must include host"
+          return false
+        end
+        if u.path.nil?
+          send_msg user, "The URL must include a path."
+          return false
+        end
+        true
+      rescue URI::InvalidURIError
+        send_msg user, "#{$!}"
+        false
+      end
 
       def add_pattern_match(user, args, positive)
         url, pattern = args.split(' ', 2)
