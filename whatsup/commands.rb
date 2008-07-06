@@ -56,7 +56,7 @@ module Whatsup
       cmd :get, "Get a URL" do |user, url|
         validate_url user, url or return
         Whatsup::Urlcheck.fetch(url) do |res|
-          send_msg user, "#{res.status == 200 ? ':)' : ':('} Got a #{res.status} from #{url} in #{res.time}s (#{res.body.size} bytes)"
+          send_msg user, "#{res.status.to_i == 200 ? ':)' : ':('} Got a #{res.status} from #{url} in #{res.time}s (#{res.body.size} bytes)"
         end
       end
 
