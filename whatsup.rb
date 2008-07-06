@@ -42,6 +42,11 @@ def inner_loop(server)
   end
 end
 
+Whatsup::Config::CONF['general'].fetch('nthreads', 1).to_i.times do |t|
+  puts "Starting thread #{t}"
+  Whatsup::Threading.start_worker
+end
+
 loop do
   server = Jabber::Simple.new(
     Whatsup::Config::CONF['xmpp']['jid'],
