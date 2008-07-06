@@ -41,11 +41,11 @@ end
 def report_status(server, watch, res, match_status, default)
   if match_status.empty?
     server.deliver watch.user.jid, default
-    res.status
+    res.status.to_i
   else
     p = match_status.first.first
     server.deliver watch.user.jid, "#{watch.url} failed to match #{p.positive ? 'positive' : 'negative'} pattern /#{p.regex}/"
-    res.status.to_i
+    -1
   end
 end
 
@@ -69,7 +69,7 @@ def process_watches(server)
     watch.update_attributes(:last_update => DateTime.now)
     Whatsup::Urlcheck.fetch(watch.url) do |res|
       status = check_result server, watch, res
-      watch.update_attributes(:status => res.status)
+      watch.update_attributes(:status => status)
     end
   end
 end
