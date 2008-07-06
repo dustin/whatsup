@@ -86,6 +86,7 @@ def update_status(server)
     $stdout.flush
     stats.watch_count = watching
     stats.user_count = users
+    stats.watching_users = wusers
     status = "Watching around #{watching} URLs for #{wusers} users (#{users} users known)"
     server.send!(Jabber::Presence.new(nil, status,
       Whatsup::Config::CONF['xmpp'].fetch('priority', 1).to_i))
