@@ -116,6 +116,13 @@ module Whatsup
         send_msg user, rv.join("\n")
       end
 
+      cmd :clear_matches, "Clear all matches for a url" do |user, url|
+        with_my_watch user, url do |watch|
+          watch.patterns.each {|p| p.destroy}
+          send_msg user, "Removed all patterns for #{url}"
+        end
+      end
+
       private
 
       def add_pattern_match(user, args, positive)
