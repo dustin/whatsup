@@ -99,6 +99,23 @@ module Whatsup
         add_pattern_match user, args, false
       end
 
+      cmd :inspect, "Inspect matches for a given URL" do |user, url|
+        rv=[]
+        with_my_watch user, url do |watch|
+          rv << "Status for #{url} (#{watch.active ? 'enabled' : 'disabled'})"
+          rv << "Last status: #{watch.status} (as of #{watch.last_update.to_s})"
+          if watch.patterns.empty?
+            rv << "No match patterns configured"
+          else
+            rv << "Patterns:"
+            watch.patterns.each do |p|
+              rv << "\t#{p.positive ? '+' : '-'}: /#{p.regex}/"
+            end
+          end
+        end
+        send_msg user, rv.join("\n")
+      end
+
       private
 
       def add_pattern_match(user, args, positive)
