@@ -9,6 +9,11 @@ require 'whatsup/config'
 require 'whatsup/models'
 require 'whatsup/commands'
 
+class GlobalStats
+  include Singleton
+  attr_accessor :watch_count
+end
+
 def process_xmpp_incoming(server)
   server.presence_updates do |user, status, message|
     User.update_status user, status
@@ -44,8 +49,21 @@ def process_watches(server)
   end
 end
 
+def update_status(server)
+  watching = Watch.count(:active => true)
+  if watching != GlobalStats.instance.watch_count
+    puts "Updating status -- now watching #{watching} URLs"
+    $stdout.flush
+    GlobalStats.instance.watch_count = watching
+    status = "Watching around #{Watch.count(:active => true)} URLs"
+    server.send!(Jabber::Presence.new(nil, status,
+      Whatsup::Config::CONF['xmpp'].fetch('priority', 1).to_i))
+  end
+end
+
 def run_loop(server)
   process_xmpp_incoming server
+  update_status server
   process_watches server
   sleep Whatsup::Config::LOOP_SLEEP
 rescue StandardError, Interrupt
@@ -69,9 +87,7 @@ loop do
   server = Jabber::Simple.new(
     Whatsup::Config::CONF['xmpp']['jid'],
     Whatsup::Config::CONF['xmpp']['pass'])
-  server.send!(Jabber::Presence.new(nil,
-    Whatsup::Config::CONF['xmpp'].fetch('status', 'In Service')['status'],
-    Whatsup::Config::CONF['xmpp'].fetch('priority', 1).to_i))
+  update_status(server)
 
   puts "Set up with #{server.inspect}"
   $stdout.flush

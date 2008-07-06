@@ -1,6 +1,7 @@
 require 'rubygems'
 gem 'dm-core'
 require 'dm-core'
+require 'dm-aggregates'
 
 class User
   include DataMapper::Resource
@@ -21,7 +22,10 @@ class User
 end
 
 class Watch
+
   include DataMapper::Resource
+  include DataMapper::Aggregates
+
   property :id, Integer, :serial => true
   property :url, String, :nullable => false, :length => 1024
   property :status, Integer
