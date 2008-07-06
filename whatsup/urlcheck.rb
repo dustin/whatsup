@@ -5,10 +5,11 @@ module Whatsup
   module Urlcheck
 
     class Response
-      attr_reader :status, :time, :body
+      attr_reader :status, :message, :time, :body
 
-      def initialize(status, time, body)
+      def initialize(status, message, time, body)
         @status = status
+        @message = message
         @time = time
         @body = body
       end
@@ -23,10 +24,13 @@ module Whatsup
           res = Net::HTTP.get_response u
           body = res.body
           endt = Time.now
-          block.call Response.new(res.code, (endt - startt), body)
+          block.call Response.new(res.code, res.message, (endt - startt), body)
+        rescue Interrupt, Timeout
+          puts "#{$!}"
+          block.call Response.new(-1, $!.to_s, (Time.now - startt), '')
         rescue
           puts "#{$!}"
-          "Something went wrong.  Probably your fault."
+          block.call Response.new(-1, $!.to_s, (Time.now - startt), '')
         end
       end
       Whatsup::Threading::IN_QUEUE << cmd

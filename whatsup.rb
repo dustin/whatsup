@@ -33,11 +33,11 @@ def process_watches(server)
     watch.update_attributes(:last_update => DateTime.now)
     Whatsup::Urlcheck.fetch(watch.url) do |res|
       if res.status.to_i != 200
-        server.deliver watch.user.jid, "Error on #{watch.url}.  Status=#{res.status}"
+        server.deliver watch.user.jid, "Error on #{watch.url}.  Status=#{res.status} (#{res.message})"
       elsif watch.status != nil && res.status.to_i != watch.status.to_i
-        server.deliver watch.user.jid, "Status of #{watch.url}.  Changed from #{watch.status} to #{res.status}"
+        server.deliver watch.user.jid, "Status of #{watch.url}.  Changed from #{watch.status} to #{res.status} (#{res.message})"
       elsif watch.status.nil?
-        server.deliver watch.user.jid, "Starting to track #{watch.url}.  Current status is #{res.status}"
+        server.deliver watch.user.jid, "Starting to track #{watch.url}.  Current status is #{res.status} (#{res.message})"
       end
       watch.update_attributes(:status => res.status)
     end
