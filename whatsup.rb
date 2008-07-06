@@ -132,7 +132,7 @@ loop do
     rescue StandardError, Interrupt
       puts "Incoming message error:  #{$!}"
       $stdout.flush
-      client.deliver message.from "Error processing your message:  #{$!}"
+      server.deliver message.from, "Error processing your message:  #{$!}"
     end
   end
 
