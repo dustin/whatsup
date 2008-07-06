@@ -21,7 +21,9 @@ module Whatsup
           u=URI.parse url
           $stdout.flush
           startt = Time.now
-          res = Net::HTTP.get_response u
+          res = Net::HTTP.start(u.host, u.port) do |http|
+            http.get(u.path, {'Connection' => 'close', 'User-Agent' => 'Whatsup'})
+          end
           body = res.body
           endt = Time.now
           block.call Response.new(res.code, res.message, (endt - startt), body)
