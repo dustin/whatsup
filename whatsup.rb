@@ -84,6 +84,8 @@ Whatsup::Config::CONF['general'].fetch('nthreads', 1).to_i.times do |t|
 end
 
 loop do
+  puts "Connecting..."
+  $stdout.flush
   server = Jabber::Simple.new(
     Whatsup::Config::CONF['xmpp']['jid'],
     Whatsup::Config::CONF['xmpp']['pass'])
