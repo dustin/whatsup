@@ -155,7 +155,11 @@ module Whatsup
       end
 
       def with_my_watch(user, url, &block)
-        watch = user.watches.first(:url => url)
+        if url.nil? || url.strip == ''
+          send_msg user, "URL argument required."
+          return
+        end
+        watch = user.watches.first(:url => url.strip)
         if watch
           yield watch
         else
