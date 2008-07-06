@@ -16,7 +16,7 @@ end
 
 class Timer
 
-  def intialize(interval)
+  def initialize(interval)
     @interval = interval
     @last_run = 0
   end
