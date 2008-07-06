@@ -12,9 +12,9 @@ module Whatsup
             msg = IN_QUEUE.pop
             msg.call
           rescue StandardError, Interrupt
-            puts "ERROR!  #{$!}\n#{$!.backtrace.join("\t\n")}"
+            puts "ERROR!  #{$!}\n#{$!.backtrace.join("\n\t")}"
           rescue
-            puts "ERROR!  #{$!}\n#{$!.backtrace.join("\t\n")}"
+            puts "ERROR!  #{$!}\n#{$!.backtrace.join("\n\t")}"
           end
         end
       end
