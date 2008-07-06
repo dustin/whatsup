@@ -65,7 +65,7 @@ module Whatsup
 
       cmd :watching, "List all current watches" do |user, nothing|
         watches = user.watches.map do |watch|
-          "#{watch.url} (#{watch.active ? 'enabled' : 'disabled'})"
+          "#{watch.url} (#{watch.active ? 'enabled' : 'disabled'} -- last=#{watch.status.nil? ? 'unknown' : watch.status})"
         end
         send_msg user, watches.join("\n")
       end
