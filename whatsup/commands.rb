@@ -154,7 +154,7 @@ module Whatsup
           send_msg user, "The URL must include host"
           return false
         end
-        if u.path.nil?
+        if u.path.nil? || u.path == ''
           send_msg user, "The URL must include a path."
           return false
         end
