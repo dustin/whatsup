@@ -61,6 +61,7 @@ module Whatsup
 
       cmd :watch, "Watch a URL" do |user, url|
         Watch.create! :user => user, :url => url
+        send_msg user, "Scheduled a watch for #{url}."
       end
 
       cmd :on, "Activate monitoring" do |user, nothing|
