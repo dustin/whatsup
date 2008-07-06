@@ -60,8 +60,14 @@ module Whatsup
       end
 
       cmd :watch, "Watch a URL" do |user, url|
-        Watch.create! :user => user, :url => url
-        send_msg user, "Scheduled a watch for #{url}."
+        begin
+          Watch.create! :user => user, :url => url
+          send_msg user, "Scheduled a watch for #{url}."
+        rescue
+          puts "Failed to create a watch for #{url} for #{user.jid}:  #{$!}"
+          $stdout.flush
+          send_msg user, "Unable to set up this watch for you (#{$!})."
+        end
       end
 
       cmd :on, "Activate monitoring" do |user, nothing|
