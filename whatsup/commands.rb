@@ -70,6 +70,26 @@ module Whatsup
         send_msg user, watches.join("\n")
       end
 
+      cmd :enable, "Enable a watch that was specifically disabled" do |user, url|
+        watch = user.watches.first(:url => url)
+        if watch
+          watch.update_attributes :active => true
+          send_msg user, "Enabled watching of #{url}"
+        else
+          send_msg user, "Cannot find watch for #{url}"
+        end
+      end
+
+      cmd :disable, "Disable a watch for a specific URL" do |user, url|
+        watch = user.watches.first(:url => url)
+        if watch
+          watch.update_attributes :active => false
+          send_msg user, "Disabled watching of #{url}"
+        else
+          send_msg user, "Cannot find watch for #{url}"
+        end
+      end
+
     end # CommandProcessor
 
   end
