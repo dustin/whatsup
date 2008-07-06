@@ -63,6 +63,13 @@ module Whatsup
         send_msg user, "Marked you inactive."
       end
 
+      cmd :watching, "List all current watches" do |user, nothing|
+        watches = user.watches.map do |watch|
+          "#{watch.url} (#{watch.active ? 'enabled' : 'disabled'})"
+        end
+        send_msg user, watches.join("\n")
+      end
+
     end # CommandProcessor
 
   end
