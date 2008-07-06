@@ -69,8 +69,8 @@ loop do
     Whatsup::Config::CONF['xmpp']['jid'],
     Whatsup::Config::CONF['xmpp']['pass'])
   server.send!(Jabber::Presence.new(nil,
-    Whatsup::Config::CONF['xmpp']['status'] || 'In service',
-    (Whatsup::Config::CONF['xmpp']['priority'] || 1).to_i))
+    Whatsup::Config::CONF['xmpp'].fetch('status', 'In Service')['status'],
+    Whatsup::Config::CONF['xmpp'].fetch('priority', 1).to_i))
 
   puts "Set up with #{server.inspect}"
   $stdout.flush
