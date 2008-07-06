@@ -47,21 +47,21 @@ def report_status(server, watch, res, match_status, default)
     res.status.to_i
   else
     p = match_status.first.first
-    server.deliver watch.user.jid, "#{watch.url} failed to match #{p.positive ? 'positive' : 'negative'} pattern /#{p.regex}/"
+    server.deliver watch.user.jid, ":( #{watch.url} failed to match #{p.positive ? 'positive' : 'negative'} pattern /#{p.regex}/"
     -1
   end
 end
 
 def check_result(server, watch, res)
   if res.status.to_i != 200
-    server.deliver watch.user.jid, "Error on #{watch.url}.  Status=#{res.status} (#{res.message})"
+    server.deliver watch.user.jid, ":( Error on #{watch.url}.  Status=#{res.status} (#{res.message})"
     res.status.to_i
   elsif watch.status != nil && res.status.to_i != watch.status.to_i
     report_status server, watch, res, check_matches(server, watch, res),
-      "Status of #{watch.url} changed from #{watch.status} to #{res.status} (#{res.message})"
+      ":) Status of #{watch.url} changed from #{watch.status} to #{res.status} (#{res.message})"
   elsif watch.status.nil?
     report_status server, watch, res, check_matches(server, watch, res),
-      "Started watching #{watch.url} -- status is #{res.status} (#{res.message})"
+      ":) Started watching #{watch.url} -- status is #{res.status} (#{res.message})"
   else
     res.status.to_i
   end
