@@ -1,8 +1,8 @@
 general:
-  # How long to wait for a beanstalk message bore polling xmpp queues
-  timeout: 5
+  loop_sleep: 60
+  db: sqlite3:whatsup.sqlite3
   nthreads: 2
-  watch_freq: 10
+  watch_freq: 15
 
 xmpp:
   jid: mybot@jabber.org/beanstalker
