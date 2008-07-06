@@ -2,6 +2,7 @@ general:
   # How long to wait for a beanstalk message bore polling xmpp queues
   timeout: 5
   nthreads: 2
+  watch_freq: 10
 
 xmpp:
   jid: mybot@jabber.org/beanstalker

@@ -26,10 +26,26 @@ def process_xmpp_incoming(server)
   end
 end
 
+def process_watches(server)
+  Watch.todo(Whatsup::Config::CONF['general'].fetch('watch_freq', 10)).each do |watch|
+    puts "Fetching #{watch.url}"
+    watch.update_attributes(:last_update => DateTime.now)
+    Whatsup::Urlcheck.fetch(watch.url) do |res|
+      if res.status.to_i != 200
+        server.deliver watch.user.jid, "Error on #{watch.url}.  Status=#{res.status}"
+      elsif res.status.to_i != watch.status.to_i
+        server.deliver watch.user.jid, "Status of #{watch.url}.  Changed from #{watch.status} to #{res.status}"
+      end
+      watch.update_attributes(:status => res.status)
+    end
+  end
+end
+
 def run_loop(server)
   puts "Processing at #{Time.now.to_s}"
   $stdout.flush
   process_xmpp_incoming server
+  process_watches server
   sleep Whatsup::Config::TIMEOUT
 rescue StandardError, Interrupt
   puts "Got exception:  #{$!.inspect}"

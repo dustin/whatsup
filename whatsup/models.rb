@@ -21,7 +21,8 @@ class Watch
   include DataMapper::Resource
   property :id, Integer, :serial => true
   property :url, String, :nullable => false, :length => 1024
-  belongs_to :user, :nullable => false
+  property :status, Integer
+  belongs_to :user
   property :last_update, DateTime
 
   def self.todo(timeout=10)
@@ -36,7 +37,6 @@ class Watch
 EOF
     ids = repository(:default).adapter.query(q,
       DateTime.now - Rational(timeout, 1440))
-    puts "Found #{ids.inspect}"
     self.all(:conditions => {:id => ids})
   end
 end

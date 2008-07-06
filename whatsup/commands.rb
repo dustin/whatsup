@@ -45,6 +45,10 @@ module Whatsup
         end
       end
 
+      cmd :watch, "Watch a URL" do |user, url|
+        Watch.create! :user => user, :url => url
+      end
+
     end # CommandProcessor
 
   end
