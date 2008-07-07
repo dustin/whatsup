@@ -5,5 +5,5 @@ general:
   watch_freq: 15
 
 xmpp:
-  jid: mybot@jabber.org/beanstalker
+  jid: mybot@jabber.org/whatsupbot
   pass: password4mybot
