@@ -1,5 +1,6 @@
 require 'net/http'
 require 'whatsup/urlcheck'
+require 'whatsup/search'
 
 module Whatsup
   module Commands
@@ -107,6 +108,28 @@ module Whatsup
         with_my_watch user, url do |watch|
           watch.destroy
           send_msg user, "Stopped watching #{url}"
+        end
+      end
+
+      cmd :search, "Do a web search." do |user, term|
+        if term.blank?
+          send_msg user, "Need a search term."
+        end
+        Whatsup::Threading::IN_QUEUE << Proc.new do
+          begin
+            google = Whatsup::Search::Google.new
+            out = ["Search results:"]
+            google.search(term).resultElements.each_with_index do |e, i|
+              out << "#{i+1}: #{e.title.strip_tags}"
+              out << e.snippet.strip_tags
+              out << e.uRL
+              out << ""
+            end
+            send_msg user, out.join("\n")
+          rescue StandardError, Interrupt
+            puts "Could not perform search:  #{$!}" + $!.backtrace.join("\n\t")
+            send_msg user, "Could not peform your search."
+          end
         end
       end
 

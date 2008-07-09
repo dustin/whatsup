@@ -14,6 +14,12 @@ class GlobalStats
   attr_accessor :watch_count, :user_count, :watching_users
 end
 
+class String
+  def strip_tags
+    return self.gsub(/<\/?[^>]*>/, "")
+  end
+end
+
 def process_xmpp_incoming(server)
   server.presence_updates do |user, status, message|
     User.update_status user, status
