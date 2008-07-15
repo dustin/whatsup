@@ -83,6 +83,20 @@ module Whatsup
         send_msg user, "Marked you inactive."
       end
 
+      cmd :quiet_for, "Be quiet for a bit (1m, 2h, 3d, etc..)" do |user, args|
+        m = {'m' => 1, 'h' => 60, 'd' => 1440}
+        time, url = args.split(/\s+/, 2)
+        match = /(\d+)([hmd])/.match(time)
+        if match
+          t = match[1].to_i * m[match[2]]
+          u = DateTime.now + Rational(t, 1440)
+          user.update_attributes(:quiet_until => u)
+          send_msg user, "You won't hear from me again for another #{time} (until #{u.to_s})"
+        else
+          send_msg user, "Didn't understand how long you wanted me to be quit.  Try 5m"
+        end
+      end
+
       cmd :watching, "List all current watches" do |user, nothing|
         watches = user.watches.sort{|a,b| a.url <=> b.url}.map do |watch|
           face = watch.status == 200 ? ':)' : ':('
