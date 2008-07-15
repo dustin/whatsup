@@ -20,6 +20,11 @@ class User
     u.save
     u
   end
+
+  def quiet?
+    quiet_until && quiet_until > DateTime.now
+  end
+
 end
 
 class Watch
@@ -57,6 +62,10 @@ EOF
     ids = repository(:default).adapter.query(q, true, true,
       DateTime.now - Rational(timeout, 1440))
     self.all(:conditions => {:id => ids})
+  end
+
+  def quiet?
+    quiet_until && quiet_until > DateTime.now
   end
 end
 

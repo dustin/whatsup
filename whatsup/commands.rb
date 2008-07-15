@@ -90,9 +90,8 @@ module Whatsup
         out = ["Jid:  #{user.jid}"]
         out << "Jabber Status:  #{user.status}"
         out << "whatsup Status:  #{user.active ? 'Active' : 'Inactive'}"
-        q = user.quiet_until
-        if q && q > DateTime.now
-          out << "Quiet Until:  #{q.to_s}"
+        if user.quiet?
+          out << "Quiet Until:  #{user.quiet_until.to_s}"
         end
         out << "You are currently watching #{user.watches.size} URLs."
         send_msg user, out.join("\n")
@@ -250,7 +249,7 @@ EOF
         rv=[]
         with_my_watch user, url do |watch|
           rv << "Status for #{url} (#{watch.active ? 'enabled' : 'disabled'})"
-          if watch.quiet_until && watch.quiet_until > DateTime.now
+          if watch.quiet?
             rv << "Alerts for this URL are suspended until #{watch.quiet_until}"
           end
           rv << "Last status: #{watch.status} (as of #{watch.last_update.to_s})"

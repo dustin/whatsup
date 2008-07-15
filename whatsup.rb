@@ -49,9 +49,7 @@ def check_matches(server, watch, res)
 end
 
 def alerts_suspended(watch)
-  now = DateTime.now
-  maxtime = [watch, watch.user].map{|x| x.quiet_until}.compact.max
-  !maxtime.nil? && now < maxtime
+  maxtime = [watch.quiet?, watch.user.quiet?].any?
 end
 
 def report_status(server, watch, res, match_status, default)
