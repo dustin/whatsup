@@ -69,7 +69,9 @@ end
 
 def check_result(server, watch, res)
   if res.status.to_i != 200
-    server.deliver watch.user.jid, ":( Error on #{watch.url}.  Status=#{res.status} (#{res.message})"
+    unless alerts_suspended watch
+      server.deliver watch.user.jid, ":( Error on #{watch.url}.  Status=#{res.status} (#{res.message})"
+    end
     res.status.to_i
   elsif watch.status != nil && res.status.to_i != watch.status.to_i
     report_status server, watch, res, check_matches(server, watch, res),
