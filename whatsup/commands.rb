@@ -167,7 +167,7 @@ EOF
 
       cmd :watching, "List all current watches" do |user, nothing|
         watches = user.watches.sort{|a,b| a.url <=> b.url}.map do |watch|
-          face = if watch.quiet?
+          face = if watch.quiet? || !watch.active
             ':-#'
           elsif watch.status == 200
             ':)'
