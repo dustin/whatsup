@@ -86,6 +86,18 @@ module Whatsup
         end
       end
 
+      cmd :status, "Show your status." do |user, arg|
+        out = ["Jid:  #{user.jid}"]
+        out << "Jabber Status:  #{user.status}"
+        out << "whatsup Status:  #{user.active ? 'Active' : 'Inactive'}"
+        q = user.quiet_until
+        if q && q > DateTime.now
+          out << "Quiet Until:  #{q.to_s}"
+        end
+        out << "You are currently watching #{user.watches.size} URLs."
+        send_msg user, out.join("\n")
+      end
+
       cmd :get, "Get a URL" do |user, url|
         validate_url user, url or return
         Whatsup::Urlcheck.fetch(url) do |res|
