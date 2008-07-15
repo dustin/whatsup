@@ -145,7 +145,7 @@ loop do
       update_status server
       process_message server, message unless message.body.nil?
     rescue StandardError, Interrupt
-      puts "Incoming message error:  #{$!}"
+      puts "Incoming message error:  #{$!}" + $!.backtrace.join("\n\t")
       $stdout.flush
       server.deliver message.from, "Error processing your message:  #{$!}"
     end
