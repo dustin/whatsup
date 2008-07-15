@@ -8,6 +8,7 @@ class User
   property :id, Integer, :serial => true
   property :jid, String, :nullable => false, :length => 128
   property :active, Boolean, :nullable => false, :default => true
+  property :quiet_until, DateTime
   property :status, String
 
   has n, :watches
@@ -30,6 +31,7 @@ class Watch
   property :url, String, :nullable => false, :length => 1024
   property :status, Integer
   property :active, Boolean, :nullable => false, :default => true
+  property :quiet_until, DateTime
   property :last_update, DateTime
 
   belongs_to :user
