@@ -171,7 +171,7 @@ EOF
           face = watch.status == 200 ? ':)' : ':('
           "#{face} #{watch.url} (#{watch.active ? 'enabled' : 'disabled'} -- last=#{watch.status.nil? ? 'unknown' : watch.status})"
         end
-        send_msg user, "Watching #{watches.size} URLs\n" + watches.join("\n")
+        send_msg user, "Watching #{watches.size} URLs\n" + watches.sort.join("\n")
       end
 
       cmd :enable, "Enable a watch that was specifically disabled" do |user, url|
