@@ -5,15 +5,33 @@ require 'whatsup/search'
 module Whatsup
   module Commands
 
+    class Help
+      attr_accessor :short_help, :full_help
+
+      def initialize(short_help)
+        @short_help = @full_help = short_help
+      end
+
+      def to_s
+        @short_help
+      end
+    end
+
     module CommandDefiner
 
       def all_cmds
         @@all_cmds ||= {}
       end
 
-      def cmd(name, help, &block)
-        all_cmds()[name.to_s] = help
+      def cmd(name, help=nil, &block)
+        unless help.nil?
+          all_cmds()[name.to_s] = Whatsup::Commands::Help.new help
+        end
         define_method(name, &block)
+      end
+
+      def help_text(name, text)
+        all_cmds()[name.to_s].full_help = text
       end
 
     end
@@ -50,8 +68,22 @@ module Whatsup
 
       cmd :help, "Get help for commands." do |user, arg|
         cmds = self.class.all_cmds()
-        help_text = cmds.keys.sort.map {|k| "#{k}\t#{cmds[k]}"}
-        send_msg user, help_text.join("\n")
+        if arg.blank?
+          out = ["Available commands:"]
+          out << "Type `help somecmd' for more help on `somecmd'"
+          out << ""
+          out << cmds.keys.sort.map{|k| "#{k}\t#{cmds[k]}"}
+          send_msg user, out.join("\n")
+        else
+          h = cmds[arg]
+          if h
+            out = ["Help for `#{arg}'"]
+            out << h.full_help
+            send_msg user, out.join("\n")
+          else
+            send_msg user, "Topic #{arg} is unknown.  Type `help' for known commands."
+          end
+        end
       end
 
       cmd :get, "Get a URL" do |user, url|
