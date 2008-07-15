@@ -238,6 +238,9 @@ EOF
         rv=[]
         with_my_watch user, url do |watch|
           rv << "Status for #{url} (#{watch.active ? 'enabled' : 'disabled'})"
+          if watch.quiet_until && watch.quiet_until > DateTime.now
+            rv << "Alerts for this URL are suspended until #{watch.quiet_until}"
+          end
           rv << "Last status: #{watch.status} (as of #{watch.last_update.to_s})"
           if watch.patterns.empty?
             rv << "No match patterns configured"
