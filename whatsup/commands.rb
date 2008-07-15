@@ -132,7 +132,7 @@ EOF
         send_msg user, "Marked you inactive."
       end
 
-      cmd :quiet_for, "Be quiet for a bit (1m, 2h, 3d, etc..)" do |user, args|
+      cmd :quiet, "Be quiet for a bit (1m, 2h, 3d, etc..)" do |user, args|
         m = {'m' => 1, 'h' => 60, 'd' => 1440}
         time, url = args.split(/\s+/, 2)
         match = /(\d+)([hmd])/.match(time)
@@ -152,7 +152,7 @@ EOF
           send_msg user, "Didn't understand how long you wanted me to be quit.  Try 5m"
         end
       end
-      help_text :quiet_for, <<-EOF
+      help_text :quiet, <<-EOF
 Quiet alerts for a period of time.
 
 Available time units:  m, h, d
