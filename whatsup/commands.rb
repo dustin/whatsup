@@ -90,8 +90,15 @@ module Whatsup
         if match
           t = match[1].to_i * m[match[2]]
           u = DateTime.now + Rational(t, 1440)
-          user.update_attributes(:quiet_until => u)
-          send_msg user, "You won't hear from me again for another #{time} (until #{u.to_s})"
+          if url
+            with_my_watch user, url do |watch|
+              watch.update_attributes(:quiet_until => u)
+              send_msg user, "You won't hear from me again for for #{watch.url} for another #{time} (until #{u.to_s})"
+            end
+          else
+            user.update_attributes(:quiet_until => u)
+            send_msg user, "You won't hear from me again for another #{time} (until #{u.to_s})"
+          end
         else
           send_msg user, "Didn't understand how long you wanted me to be quit.  Try 5m"
         end
