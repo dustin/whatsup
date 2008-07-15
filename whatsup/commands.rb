@@ -104,6 +104,11 @@ module Whatsup
           send_msg user, "Unable to set up this watch for you (#{$!})."
         end
       end
+      help_text :watch, <<-EOF
+Periodically validate the URL at the given location.
+
+You can use match and negmatch to add content validation.
+EOF
 
       cmd :on, "Activate monitoring" do |user, nothing|
         user.update_attributes(:active => true)
@@ -135,6 +140,19 @@ module Whatsup
           send_msg user, "Didn't understand how long you wanted me to be quit.  Try 5m"
         end
       end
+      help_text :quiet_for, <<-EOF
+Quiet alerts for a period of time.
+
+Available time units:  m, h, d
+
+You can either quiet an individual URL like this:
+
+  quiet 5m http://broken.example.com/
+
+or from everything:
+
+  quiet 1h
+EOF
 
       cmd :watching, "List all current watches" do |user, nothing|
         watches = user.watches.sort{|a,b| a.url <=> b.url}.map do |watch|
@@ -150,6 +168,11 @@ module Whatsup
           send_msg user, "Enabled watching of #{url}"
         end
       end
+      help_text :watching, <<-EOF
+Enable checking of a URL that was previously disabled.
+
+Usage:  enable http://working.example.com/
+EOF
 
       cmd :disable, "Disable a watch for a specific URL" do |user, url|
         with_my_watch user, url do |watch|
@@ -157,6 +180,11 @@ module Whatsup
           send_msg user, "Disabled watching of #{url}"
         end
       end
+      help_text :disable, <<-EOF
+Disable checking of a URL.
+
+Usage: disable http://broken.example.com/
+EOF
 
       cmd :unwatch, "Stop watching a URL" do |user, url|
         with_my_watch user, url do |watch|
@@ -186,14 +214,25 @@ module Whatsup
           end
         end
       end
+      help_text :search, "This really doesn't belong here."
 
       cmd :match, "Ensure a pattern matches for a URL" do |user, args|
         add_pattern_match user, args, true
       end
+      help_text :match, <<-EOF
+Add a positive regex match for a URL.
+
+Usage:  match http://www.example.com/ working
+EOF
 
       cmd :negmatch, "Ensure a pattern does not match for a URL" do |user, args|
         add_pattern_match user, args, false
       end
+      help_text :negmatch, <<-EOF
+Add a negative regex match for a URL.
+
+Usage: negmatch http://www.example.com/ hac?[kx]ed.by
+EOF
 
       cmd :inspect, "Inspect matches for a given URL" do |user, url|
         rv=[]
