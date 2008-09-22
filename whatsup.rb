@@ -4,6 +4,7 @@ require 'rubygems'
 require 'sqlite3'
 require 'date'
 require 'xmpp4r-simple'
+require 'xmpp4r/version'
 
 require 'whatsup/config'
 require 'whatsup/models'
@@ -150,6 +151,9 @@ loop do
       server.deliver message.from, "Error processing your message:  #{$!}"
     end
   end
+
+  Jabber::Version::SimpleResponder.new(server.client,
+    'Whatsup', Whatsup::Config::VERSION, 'Linux')
 
   update_status(server)
 
