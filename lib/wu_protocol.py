@@ -64,15 +64,20 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
 
     def subscribedReceived(self, entity):
         print "Subscribe received from %s" % (entity.userhost())
-        self.subscribed(entity)
 
     def unsubscribedReceived(self, entity):
-        print "Unsubscribe received from %s" % (entity.userhost())
+        print "Unsubscribed received from %s" % (entity.userhost())
+        models.User.update_status(entity.userhost(), 'unsubscribed')
+        self.unsubscribe(entity)
         self.unsubscribed(entity)
 
     def subscribeReceived(self, entity):
         print "Subscribe received from %s" % (entity.userhost())
         self.subscribe(entity)
+        self.subscribed(entity)
 
     def unsubscribeReceived(self, entity):
         print "Unsubscribe received from %s" % (entity.userhost())
+        models.User.update_status(entity.userhost(), 'unsubscribed')
+        self.unsubscribe(entity)
+        self.unsubscribed(entity)
