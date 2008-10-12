@@ -34,6 +34,13 @@ class User(object):
         session.commit()
         return u
 
+    def is_quiet(self):
+        """Is this user quiet?"""
+        rv=False
+        if self.quiet_until:
+            rv = self.quiet_until > datetime.datetime.now()
+        return rv
+
 class Watch(object):
     def is_quiet(self):
         """Is this thing quiet?"""
