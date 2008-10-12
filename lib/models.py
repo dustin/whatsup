@@ -43,7 +43,23 @@ class User(Quietable):
         return u
 
 class Watch(Quietable):
-    pass
+
+    @staticmethod
+    def todo(session, timeout=10):
+        """Get the items to do."""
+        ID_QUERY="""select w.*
+          from watches w join users on (users.id == w.user_id)
+          where
+            users.active is not null
+            and users.active = :uactive
+            and users.status not in ('dnd', 'offline', 'unavailable')
+            and w.active = :wactive
+            and ( w.last_update is null or w.last_update < :last_update)
+          limit 50
+          """
+        then=datetime.datetime.now() - datetime.timedelta(minutes=timeout)
+        return session.query(Watch).from_statement(ID_QUERY).params(
+            uactive=True, wactive=True, last_update=then)
 
 class Pattern(object):
     pass
