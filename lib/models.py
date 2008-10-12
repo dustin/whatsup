@@ -10,7 +10,15 @@ _metadata = MetaData()
 Session = sessionmaker()
 Session.configure(bind=_engine)
 
-class User(object):
+class Quietable(object):
+    def is_quiet(self):
+        """Is this user quiet?"""
+        rv=False
+        if self.quiet_until:
+            rv = self.quiet_until > datetime.datetime.now()
+        return rv
+
+class User(Quietable):
 
     @staticmethod
     def by_jid(jid, session=None):
@@ -34,20 +42,8 @@ class User(object):
         session.commit()
         return u
 
-    def is_quiet(self):
-        """Is this user quiet?"""
-        rv=False
-        if self.quiet_until:
-            rv = self.quiet_until > datetime.datetime.now()
-        return rv
-
-class Watch(object):
-    def is_quiet(self):
-        """Is this thing quiet?"""
-        rv=False
-        if self.quiet_until:
-            rv = self.quiet_until > datetime.datetime.now()
-        return rv
+class Watch(Quietable):
+    pass
 
 class Pattern(object):
     pass
