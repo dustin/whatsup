@@ -5,6 +5,9 @@ _engine = create_engine('sqlite:///whatsup.sqlite3')
 
 _metadata = MetaData()
 
+Session = sessionmaker()
+Session.configure(bind=_engine)
+
 class User(object):
     pass
 
@@ -48,6 +51,3 @@ mapper(Watch, _watches_table, properties={
 mapper(Pattern, _patterns_table, properties={
     'watch': relation(Watch)
     })
-
-Session = sessionmaker()
-Session.configure(bind=_engine)
