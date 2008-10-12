@@ -2,13 +2,19 @@
 
 from twisted.words.xish import domish
 from twisted.words.protocols.jabber.jid import JID
-from wokkel.xmppim import MessageProtocol, AvailablePresence
+from wokkel.xmppim import MessageProtocol, PresenceClientProtocol
+from wokkel.xmppim import AvailablePresence
 
 import wu_commands
 import wu_config
 import models
 
-class WhatsupProtocol(MessageProtocol):
+class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
+
+    def connectionInitialized(self):
+        MessageProtocol.connectionInitialized(self)
+        PresenceClientProtocol.connectionInitialized(self)
+
     def connectionMade(self):
         print "Connected!"
 
@@ -20,7 +26,6 @@ class WhatsupProtocol(MessageProtocol):
 
     def connectionLost(self, reason):
         print "Disconnected!"
-
 
     def send_plain(self, jid, content):
         msg = domish.Element((None, "message"))
@@ -36,8 +41,6 @@ class WhatsupProtocol(MessageProtocol):
         return models.User.by_jid(jid.userhost(), session)
 
     def onMessage(self, msg):
-        print "Incoming message:  %s" % msg.toXml()
-
         if msg["type"] == 'chat' and hasattr(msg, "body") and msg.body:
             a=str(msg.body).split(' ', 1)
             args = None
@@ -49,3 +52,27 @@ class WhatsupProtocol(MessageProtocol):
                 session.commit()
             else:
                 self.send_plain(msg['from'], 'No such command: ' + a[0])
+
+    # presence stuff
+    def availableReceived(self, entity, show=None, statuses=None, priority=0):
+        print "Available from %s (%s, %s)" % (entity.full(), show, statuses)
+        models.User.update_status(entity.userhost(), show)
+
+    def unavailableReceived(self, entity, statuses=None):
+        print "Unavailable from %s" % entity.userhost()
+        models.User.update_status(entity.userhost(), 'unavailable')
+
+    def subscribedReceived(self, entity):
+        print "Subscribe received from %s" % (entity.userhost())
+        self.subscribed(entity)
+
+    def unsubscribedReceived(self, entity):
+        print "Unsubscribe received from %s" % (entity.userhost())
+        self.unsubscribed(entity)
+
+    def subscribeReceived(self, entity):
+        print "Subscribe received from %s" % (entity.userhost())
+        self.subscribe(entity)
+
+    def unsubscribeReceived(self, entity):
+        print "Unsubscribe received from %s" % (entity.userhost())

@@ -33,6 +33,8 @@ class User(Quietable):
         """Find or create a user by jid and set the user's status"""
         session = Session()
         u = None
+        if not status:
+            status="online"
         try:
             u=User.by_jid(jid, session)
         except exc.NoResultFound, e:

@@ -13,6 +13,5 @@ application = service.Application("whatsup")
 xmppclient = XMPPClient(jid.internJID(wu_config.SCREEN_NAME),
     wu_config.CONF['xmpp']['pass'])
 xmppclient.logTraffic = False
-whatsup = wu_protocol.WhatsupProtocol()
-whatsup.setHandlerParent(xmppclient)
+wu_protocol.WhatsupProtocol().setHandlerParent(xmppclient)
 xmppclient.setServiceParent(application)
