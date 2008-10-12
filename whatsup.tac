@@ -5,7 +5,7 @@ from twisted.application import service
 from twisted.words.protocols.jabber import jid
 from wokkel.client import XMPPClient
 
-from whatsup import EchoBotProtocol
+from wu_protocol import EchoBotProtocol
 import wu_config
 
 application = service.Application("whatsup")
