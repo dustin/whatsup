@@ -3,7 +3,7 @@
 from twisted.words.xish import domish
 from wokkel.xmppim import MessageProtocol, AvailablePresence
 
-class EchoBotProtocol(MessageProtocol):
+class WhatsupProtocol(MessageProtocol):
     def connectionMade(self):
         print "Connected!"
 
@@ -14,9 +14,9 @@ class EchoBotProtocol(MessageProtocol):
         print "Disconnected!"
 
     def onMessage(self, msg):
-        print str(msg)
+        print "Incoming message:  %s" % msg.toXml()
 
-        if msg["type"] == 'chat' and hasattr(msg, "body"):
+        if msg["type"] == 'chat' and hasattr(msg, "body") and msg.body:
             reply = domish.Element((None, "message"))
             reply["to"] = msg["from"]
             reply["from"] = msg["to"]
