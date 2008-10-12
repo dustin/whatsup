@@ -22,6 +22,12 @@ class StatusCommand(BaseCommand):
         super(StatusCommand, self).__init__('status', 'Check your status.')
 
     def __call__(self, user, prot, args):
-        prot.send_plain(user.jid, "You're OK by me.")
+        rv=[]
+        rv.append("Jid:  %s" % user.jid)
+        rv.append("Jabber status:  %s" % user.status)
+        rv.append("Whatsup status:  %s"
+            % {True: 'Active', False: 'Inactive'}[user.active])
+        rv.append("You are currently watching %d URLs." % len(user.watches))
+        prot.send_plain(user.jid, "\n".join(rv))
 
 __register(StatusCommand)
