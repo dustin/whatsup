@@ -1,3 +1,4 @@
 whatsup.log
 whatsup.yml
 *.sqlite3
+*.pyc
