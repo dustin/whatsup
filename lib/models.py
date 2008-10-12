@@ -11,10 +11,13 @@ class User(object):
 class Watch(object):
     pass
 
+class Pattern(object):
+    pass
+
 _users_table = Table('users', _metadata,
     Column('id', Integer, primary_key=True),
     Column('jid', String(128)),
-    Column('active', Boolean),
+    Column('active', Boolean, default=True),
     Column('status', String(50)),
     Column('quiet_until', DateTime))
 
@@ -28,11 +31,22 @@ _watches_table = Table('watches', _metadata,
     Column('last_update', DateTime)
 )
 
+_patterns_table = Table('patterns', _metadata,
+    Column('id', Integer, primary_key=True),
+    Column('watch_id', Integer, ForeignKey('watches.id')),
+    Column('positive', Boolean),
+    Column('regex', String(1024))
+)
+
 mapper(User, _users_table, properties={
     'watches': relation(Watch)
     })
 mapper(Watch, _watches_table, properties={
-    'user': relation(User)
+    'user': relation(User),
+    'patterns': relation(Pattern)
+    })
+mapper(Pattern, _patterns_table, properties={
+    'watch': relation(Watch)
     })
 
 Session = sessionmaker()
