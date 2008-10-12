@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker, mapper, relation, backref
 
@@ -12,7 +14,12 @@ class User(object):
     pass
 
 class Watch(object):
-    pass
+    def is_quiet(self):
+        """Is this thing quiet?"""
+        rv=False
+        if self.quiet_until:
+            rv = self.quiet_until > datetime.datetime.now()
+        return rv
 
 class Pattern(object):
     pass
