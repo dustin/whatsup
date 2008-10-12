@@ -1,7 +1,7 @@
 import datetime
 
 from sqlalchemy import *
-from sqlalchemy.orm import sessionmaker, mapper, relation, backref
+from sqlalchemy.orm import sessionmaker, mapper, relation, backref, exc
 
 _engine = create_engine('sqlite:///whatsup.sqlite3')
 
@@ -11,7 +11,28 @@ Session = sessionmaker()
 Session.configure(bind=_engine)
 
 class User(object):
-    pass
+
+    @staticmethod
+    def by_jid(jid, session=None):
+        if not session:
+            session=Session()
+        return session.query(User).filter_by(jid=jid).one()
+
+    @staticmethod
+    def update_status(jid, status):
+        """Find or create a user by jid and set the user's status"""
+        session = Session()
+        u = None
+        try:
+            u=User.by_jid(jid, session)
+        except exc.NoResultFound, e:
+            u=User()
+            u.jid=jid
+
+        u.status=status
+        session.add(u)
+        session.commit()
+        return u
 
 class Watch(object):
     def is_quiet(self):
