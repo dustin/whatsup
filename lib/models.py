@@ -3,7 +3,9 @@ import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker, mapper, relation, backref, exc
 
-_engine = create_engine('sqlite:///whatsup.sqlite3')
+import wu_config
+
+_engine = create_engine(wu_config.CONF['general']['db'])
 
 _metadata = MetaData()
 
