@@ -1,6 +1,6 @@
 general:
   loop_sleep: 60
-  db: sqlite3:whatsup.sqlite3
+  db: sqlite:///whatsup.sqlite3
   nthreads: 2
   watch_freq: 15
   googlekey: whatever
