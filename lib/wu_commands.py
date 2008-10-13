@@ -146,3 +146,29 @@ class WatchingCommand(BaseCommand):
         prot.send_plain(user.jid, "\n".join(rv))
 
 __register(WatchingCommand)
+
+class InspectCommand(BaseCommand):
+    def __init__(self):
+        super(InspectCommand, self).__init__('inspect', 'Inspect a watch.')
+
+    def __call__(self, user, prot, args, session):
+        try:
+            w=session.query(models.Watch).filter_by(
+                url=args).filter_by(user_id=user.id).one()
+            rv=[]
+            rv.append("Status for %s: %s"
+                % (w.url, {True: 'enabled', False: 'disabled'}[w.active]))
+            if w.is_quiet():
+                rv.append("Alerts are quiet until %s" % str(w.quiet_until))
+            rv.append("Last update:  %s" % str(w.last_update))
+            if w.patterns:
+                for p in w.patterns:
+                    rv.append("\t%s %s" % ({True: '+', False: '-'}[p.positive],
+                        p.regex))
+            else:
+                rv.append("No match patterns configured.")
+            prot.send_plain(user.jid, "\n".join(rv))
+        except exc.NoResultFound:
+            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+
+__register(InspectCommand)
