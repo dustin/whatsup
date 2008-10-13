@@ -69,7 +69,9 @@ class GetCommand(BaseCommand):
                     (cf.written, (time.time() - start)))
             client.downloadPage(args, cf).addCallbacks(
                 callback=onSuccess,
-                errback=lambda error:(prot.send_plain(user.jid, "Error getting the page: %s" % `error`)))
+                errback=lambda error:(prot.send_plain(
+                    user.jid, "Error getting the page: %s (%s)"
+                    % (error.getErrorMessage(), dir(error)))))
         else:
             prot.send_plain(user.jid, "I need a URL to fetch.")
 
