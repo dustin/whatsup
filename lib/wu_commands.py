@@ -226,6 +226,36 @@ class ClearMatchesCommand(BaseCommand):
 
 __register(ClearMatchesCommand)
 
+class DisableCommand(BaseCommand):
+    def __init__(self):
+        super(DisableCommand, self).__init__('disable', 'Disable checks for a URL')
+
+    def __call__(self, user, prot, args, session):
+        try:
+            w=session.query(models.Watch).filter_by(
+                url=args).filter_by(user_id=user.id).one()
+            w.active=False
+            prot.send_plain(user.jid, "Disabled checks for %s" % w.url)
+        except exc.NoResultFound:
+            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+
+__register(DisableCommand)
+
+class EnableCommand(BaseCommand):
+    def __init__(self):
+        super(EnableCommand, self).__init__('enable', 'Enable checks for a URL')
+
+    def __call__(self, user, prot, args, session):
+        try:
+            w=session.query(models.Watch).filter_by(
+                url=args).filter_by(user_id=user.id).one()
+            w.active=True
+            prot.send_plain(user.jid, "Enabled checks for %s" % w.url)
+        except exc.NoResultFound:
+            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+
+__register(EnableCommand)
+
 class OnCommand(BaseCommand):
     def __init__(self):
         super(OnCommand, self).__init__('on', 'Enable monitoring.')
