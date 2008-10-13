@@ -56,6 +56,8 @@ class StatusCommand(BaseCommand):
         rv.append("Whatsup status:  %s"
             % {True: 'Active', False: 'Inactive'}[user.active])
         rv.append("You are currently watching %d URLs." % len(user.watches))
+        if user.is_quiet():
+            rv.append("All alerts are quieted until %s" % str(user.quiet_until))
         prot.send_plain(user.jid, "\n".join(rv))
 
 __register(StatusCommand)
