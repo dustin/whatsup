@@ -65,6 +65,15 @@ class Watch(Quietable):
         return session.query(Watch).from_statement(ID_QUERY).params(
             uactive=True, wactive=True, last_update=then)
 
+    def status_emoticon(self):
+        if not self.active:
+            rv=":-#"
+        elif self.status == 200:
+            rv=":)"
+        else:
+            rv=":("
+        return rv
+
 class Pattern(object):
     pass
 

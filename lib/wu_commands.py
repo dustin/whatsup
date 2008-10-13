@@ -130,3 +130,19 @@ class UnwatchCommand(BaseCommand):
             prot.send_plain(user.jid, "Cannot find watch for %s" % args)
 
 __register(UnwatchCommand)
+
+class WatchingCommand(BaseCommand):
+    def __init__(self):
+        super(WatchingCommand, self).__init__('watching', 'List your watches.')
+
+    def __call__(self, user, prot, args, session):
+        watches=[]
+        rv=[("You are watching %d URLs:" % len(user.watches))]
+        h={True: 'enabled', False: 'disabled'}
+        for w in user.watches:
+            watches.append("%s %s - (%s -- last=%s)" % (w.status_emoticon(),
+                w.url, h[w.active], `w.status`))
+        rv += sorted(watches)
+        prot.send_plain(user.jid, "\n".join(rv))
+
+__register(WatchingCommand)
