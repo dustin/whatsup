@@ -1,4 +1,6 @@
 import time
+import re
+import sre_constants
 
 from twisted.words.xish import domish
 from twisted.web import client
@@ -172,3 +174,25 @@ class InspectCommand(BaseCommand):
             prot.send_plain(user.jid, "Cannot find watch for %s" % args)
 
 __register(InspectCommand)
+
+class MatchCommand(BaseCommand):
+    def __init__(self):
+        super(MatchCommand, self).__init__('match', 'Configure a match for a URL')
+
+    def __call__(self, user, prot, args, session):
+        try:
+            url, regex=args.split(' ', 1)
+            re.compile(regex) # Check the regex
+            w=session.query(models.Watch).filter_by(
+                url=url).filter_by(user_id=user.id).one()
+            m=models.Pattern()
+            m.positive=True
+            m.regex=regex
+            w.patterns.append(m)
+            prot.send_plain(user.jid, "Added pattern.")
+        except exc.NoResultFound:
+            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+        except sre_constants.error, e:
+            prot.send_plain(user.jid, "Error configuring pattern:  %s" % e.message)
+
+__register(MatchCommand)
