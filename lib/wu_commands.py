@@ -175,9 +175,7 @@ class InspectCommand(BaseCommand):
 
 __register(InspectCommand)
 
-class MatchCommand(BaseCommand):
-    def __init__(self):
-        super(MatchCommand, self).__init__('match', 'Configure a match for a URL')
+class BaseMatchCommand(BaseCommand):
 
     def __call__(self, user, prot, args, session):
         try:
@@ -186,7 +184,7 @@ class MatchCommand(BaseCommand):
             w=session.query(models.Watch).filter_by(
                 url=url).filter_by(user_id=user.id).one()
             m=models.Pattern()
-            m.positive=True
+            m.positive=self.isPositive()
             m.regex=regex
             w.patterns.append(m)
             prot.send_plain(user.jid, "Added pattern.")
@@ -195,4 +193,20 @@ class MatchCommand(BaseCommand):
         except sre_constants.error, e:
             prot.send_plain(user.jid, "Error configuring pattern:  %s" % e.message)
 
+class MatchCommand(BaseMatchCommand):
+    def __init__(self):
+        super(MatchCommand, self).__init__('match', 'Configure a match for a URL')
+
+    def isPositive(self):
+        return True
+
 __register(MatchCommand)
+
+class NegMatchCommand(BaseMatchCommand):
+    def __init__(self):
+        super(NegMatchCommand, self).__init__('negmatch', 'Configure a negative match for a URL')
+
+    def isPositive(self):
+        return False
+
+__register(NegMatchCommand)
