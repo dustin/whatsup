@@ -11,6 +11,11 @@ import models
 
 class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
 
+    def __init__(self):
+        super(WhatsupProtocol, self).__init__()
+        self._watching=-1
+        self._users=-1
+
     def connectionInitialized(self):
         MessageProtocol.connectionInitialized(self)
         PresenceClientProtocol.connectionInitialized(self)
@@ -22,7 +27,20 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
         print "Loaded commands: ", `self.commands.keys()`
 
         # send initial presence
-        self.send(AvailablePresence())
+        self.update_presence()
+
+    def update_presence(self):
+        session=models.Session()
+        try:
+            watching=session.query(models.Watch).count()
+            users=session.query(models.User).count()
+            if watching != self._watching or users != self._users:
+                status="Watching %s URLs for %s users" % (watching, users)
+                self.available(None, None, {None: status})
+                self._watching = watching
+                self._users = users
+        finally:
+            session.close()
 
     def connectionLost(self, reason):
         print "Disconnected!"
@@ -73,6 +91,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
                     session.close()
             else:
                 self.send_plain(msg['from'], 'No such command: ' + a[0])
+            self.update_presence()
 
     # presence stuff
     def availableReceived(self, entity, show=None, statuses=None, priority=0):
@@ -96,9 +115,11 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
         print "Subscribe received from %s" % (entity.userhost())
         self.subscribe(entity)
         self.subscribed(entity)
+        self.update_presence()
 
     def unsubscribeReceived(self, entity):
         print "Unsubscribe received from %s" % (entity.userhost())
         models.User.update_status(entity.userhost(), 'unsubscribed')
         self.unsubscribe(entity)
         self.unsubscribed(entity)
+        self.update_presence()
