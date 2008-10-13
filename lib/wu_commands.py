@@ -210,3 +210,18 @@ class NegMatchCommand(BaseMatchCommand):
         return False
 
 __register(NegMatchCommand)
+
+class ClearMatchesCommand(BaseCommand):
+    def __init__(self):
+        super(ClearMatchesCommand, self).__init__('clear_matches', 'Clear all matches for a URL')
+
+    def __call__(self, user, prot, args, session):
+        try:
+            w=session.query(models.Watch).filter_by(
+                url=args).filter_by(user_id=user.id).one()
+            w.patterns=[]
+            prot.send_plain(user.jid, "Cleared all matches for %s" % w.url)
+        except exc.NoResultFound:
+            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+
+__register(ClearMatchesCommand)
