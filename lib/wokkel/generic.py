@@ -14,7 +14,6 @@ from twisted.words.protocols.jabber import error
 from twisted.words.xish import domish, utility
 
 from wokkel import disco
-from wokkel import disco
 from wokkel.compat import toResponse
 from wokkel.iwokkel import IDisco
 from wokkel.subprotocols import XMPPHandler
