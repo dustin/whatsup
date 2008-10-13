@@ -225,3 +225,23 @@ class ClearMatchesCommand(BaseCommand):
             prot.send_plain(user.jid, "Cannot find watch for %s" % args)
 
 __register(ClearMatchesCommand)
+
+class OnCommand(BaseCommand):
+    def __init__(self):
+        super(OnCommand, self).__init__('on', 'Enable monitoring.')
+
+    def __call__(self, user, prot, args, session):
+        user.active=True
+        prot.send_plain(user.jid, "Enabled monitoring.")
+
+__register(OnCommand)
+
+class OffCommand(BaseCommand):
+    def __init__(self):
+        super(OffCommand, self).__init__('off', 'Disable monitoring.')
+
+    def __call__(self, user, prot, args, session):
+        user.active=False
+        prot.send_plain(user.jid, "Disabled monitoring.")
+
+__register(OffCommand)
