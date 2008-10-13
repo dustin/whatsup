@@ -24,27 +24,35 @@ class User(Quietable):
 
     @staticmethod
     def by_jid(jid, session=None):
-        if not session:
-            session=Session()
-        return session.query(User).filter_by(jid=jid).one()
+        s=session
+        if not s:
+            s=Session()
+        try:
+            return session.query(User).filter_by(jid=jid).one()
+        finally:
+            if not session:
+                s.close()
 
     @staticmethod
     def update_status(jid, status):
         """Find or create a user by jid and set the user's status"""
         session = Session()
-        u = None
-        if not status:
-            status="online"
         try:
-            u=User.by_jid(jid, session)
-        except exc.NoResultFound, e:
-            u=User()
-            u.jid=jid
+            u = None
+            if not status:
+                status="online"
+            try:
+                u=User.by_jid(jid, session)
+            except exc.NoResultFound, e:
+                u=User()
+                u.jid=jid
 
-        u.status=status
-        session.add(u)
-        session.commit()
-        return u
+            u.status=status
+            session.add(u)
+            session.commit()
+            return u
+        finally:
+            session.close()
 
 class Watch(Quietable):
 

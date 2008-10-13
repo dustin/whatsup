@@ -11,12 +11,14 @@ class CheckSites(object):
 
     def __call__(self):
         session = models.Session()
-        todo = models.Watch.todo(session)
-        for watch in todo:
-            client.getPage(str(watch.url), timeout=10).addCallbacks(
-                callback=self.__mkCallback(watch.id, self.onSuccess),
-                errback=self.__mkCallback(watch.id, self.onError))
-        session.close()
+        try:
+            todo = models.Watch.todo(session)
+            for watch in todo:
+                client.getPage(str(watch.url), timeout=10).addCallbacks(
+                    callback=self.__mkCallback(watch.id, self.onSuccess),
+                    errback=self.__mkCallback(watch.id, self.onError))
+        finally:
+            session.close()
 
     def __mkCallback(self, id, f):
         return lambda v: f(id, v)
@@ -44,17 +46,20 @@ class CheckSites(object):
     def onSuccess(self, watch_id, page):
         print "Success fetching %d: %d bytes" % (watch_id, len(page))
         session = models.Session()
-        watch=session.query(models.Watch).filter_by(id=watch_id).one()
-        status, pattern = self._check_patterns(page, watch)
-        print "Pattern status of %s: %d" % (watch.url, status)
-        if status == 200:
-            if status != watch.status:
-                self.client.send_plain(watch.user.jid,
-                    ":) Status of %s changed from %s to %d"
-                    % (watch.url, `watch.status`, status))
-        else:
-            self._reportError(watch, status, "Pattern failed: %s" % pattern)
-        self.__updateDb(watch, status, session)
+        try:
+            watch=session.query(models.Watch).filter_by(id=watch_id).one()
+            status, pattern = self._check_patterns(page, watch)
+            print "Pattern status of %s: %d" % (watch.url, status)
+            if status == 200:
+                if status != watch.status:
+                    self.client.send_plain(watch.user.jid,
+                        ":) Status of %s changed from %s to %d"
+                        % (watch.url, `watch.status`, status))
+            else:
+                self._reportError(watch, status, "Pattern failed: %s" % pattern)
+            self.__updateDb(watch, status, session)
+        finally:
+            session.close()
 
     def _reportError(self, watch, status, err_msg):
         self.client.send_plain(watch.user.jid, ":( Error in %s: %d - %s"
@@ -63,10 +68,13 @@ class CheckSites(object):
     def onError(self, watch_id, error):
         print "Error fetching %d: %s" % (watch_id, error)
         session = models.Session()
-        watch=session.query(models.Watch).filter_by(id=watch_id).one()
         try:
-            status=int(error.getErrorMessage()[0:3])
-        except:
-            status=-1
-        self._reportError(watch, status, error.getErrorMessage())
-        self.__updateDb(watch, status, session)
+            watch=session.query(models.Watch).filter_by(id=watch_id).one()
+            try:
+                status=int(error.getErrorMessage()[0:3])
+            except:
+                status=-1
+            self._reportError(watch, status, error.getErrorMessage())
+            self.__updateDb(watch, status, session)
+        finally:
+            session.close()
