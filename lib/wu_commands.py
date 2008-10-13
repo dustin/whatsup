@@ -28,7 +28,13 @@ class BaseCommand(object):
     def __init__(self, name, help=None, extended_help=None):
         self.name=name
         self.help=help
-        self.extended_help=extended_help
+        self.__extended_help=extended_help
+
+    def extended_help(self):
+        if self.__extended_help:
+            return self.__extended_help
+        else:
+            return self.help
 
     def __call__(self, user, prot, args):
         raise NotImplementedError()
@@ -68,3 +74,24 @@ class GetCommand(BaseCommand):
             prot.send_plain(user.jid, "I need a URL to fetch.")
 
 __register(GetCommand)
+
+class HelpCommand(BaseCommand):
+
+    def __init__(self):
+        super(HelpCommand, self).__init__('help', 'You need help.')
+
+    def __call__(self, user, prot, args):
+        rv=[]
+        if args:
+            c=all_commands.get(args.strip().lower(), None)
+            if c:
+                rv.append("Help for %s:\n" % c.name)
+                rv.append(c.extended_help())
+            else:
+                rv.append("Unknown command %s." % args)
+        else:
+            for k in sorted(all_commands.keys()):
+                rv.append('%s\t%s' % (k, all_commands[k].help))
+        prot.send_plain(user.jid, "\n".join(rv))
+
+__register(HelpCommand)
