@@ -23,7 +23,7 @@ You are considered inactive if any of the following are true:
 
 It's easy to run your own instance.  You'll need a recent version of
 [twisted](http://twistedmatrix.com/trac/) (specifically names, web, and words),
-and two items from the [cheese shop](www.python.org/pypi):
+and two items from the [cheese shop](http://www.python.org/pypi):
 
 * SQLAlchemy
 * PyYAML
