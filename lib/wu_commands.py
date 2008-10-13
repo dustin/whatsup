@@ -8,6 +8,19 @@ all_commands=[]
 def __register(cls):
     all_commands.append(cls())
 
+class CountingFile(object):
+    """A file-like object that just counts what's written to it."""
+    def __init__(self):
+        self.written=0
+    def write(self, b):
+        self.written += len(b)
+    def close(self):
+        pass
+    def open(self):
+        pass
+    def read(self):
+        return None
+
 class BaseCommand(object):
     """Base class for command processors."""
 
@@ -43,10 +56,11 @@ class GetCommand(BaseCommand):
     def __call__(self, user, prot, args):
         if args:
             start=time.time()
-            def onSuccess(page):
+            cf = CountingFile()
+            def onSuccess(value):
                 prot.send_plain(user.jid, "Got %d bytes in %.2fs" %
-                    (len(page), (time.time() - start)))
-            client.getPage(args, timeout=10).addCallbacks(
+                    (cf.written, (time.time() - start)))
+            client.downloadPage(args, cf).addCallbacks(
                 callback=onSuccess,
                 errback=lambda error:(prot.send_plain(user.jid, "Error getting the page: %s" % `error`)))
         else:
