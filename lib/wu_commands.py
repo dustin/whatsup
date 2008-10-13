@@ -3,6 +3,8 @@ import time
 from twisted.words.xish import domish
 from twisted.web import client
 
+import models
+
 all_commands={}
 
 def __register(cls):
@@ -97,3 +99,17 @@ class HelpCommand(BaseCommand):
         prot.send_plain(user.jid, "\n".join(rv))
 
 __register(HelpCommand)
+
+class WatchCommand(BaseCommand):
+
+    def __init__(self):
+        super(WatchCommand, self).__init__('watch', 'Start watching a page.')
+
+    def __call__(self, user, prot, args, session):
+        w=models.Watch()
+        w.url=args
+        w.user=user
+        session.add(w)
+        prot.send_plain(user.jid, "Started watching %s" % w.url)
+
+__register(WatchCommand)
