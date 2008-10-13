@@ -1,4 +1,7 @@
+import time
+
 from twisted.words.xish import domish
+from twisted.web import client
 
 all_commands=[]
 
@@ -31,3 +34,22 @@ class StatusCommand(BaseCommand):
         prot.send_plain(user.jid, "\n".join(rv))
 
 __register(StatusCommand)
+
+class GetCommand(BaseCommand):
+
+    def __init__(self):
+        super(GetCommand, self).__init__('get', 'Get a web page.')
+
+    def __call__(self, user, prot, args):
+        if args:
+            start=time.time()
+            def onSuccess(page):
+                prot.send_plain(user.jid, "Got %d bytes in %.2fs" %
+                    (len(page), (time.time() - start)))
+            client.getPage(args, timeout=10).addCallbacks(
+                callback=onSuccess,
+                errback=lambda error:(prot.send_plain(user.jid, "Error getting the page: %s" % `error`)))
+        else:
+            prot.send_plain(user.jid, "I need a URL to fetch.")
+
+__register(GetCommand)
