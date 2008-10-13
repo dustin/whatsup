@@ -36,7 +36,7 @@ class BaseCommand(object):
         else:
             return self.help
 
-    def __call__(self, user, prot, args):
+    def __call__(self, user, prot, args, session):
         raise NotImplementedError()
 
 class StatusCommand(BaseCommand):
@@ -44,7 +44,7 @@ class StatusCommand(BaseCommand):
     def __init__(self):
         super(StatusCommand, self).__init__('status', 'Check your status.')
 
-    def __call__(self, user, prot, args):
+    def __call__(self, user, prot, args, session):
         rv=[]
         rv.append("Jid:  %s" % user.jid)
         rv.append("Jabber status:  %s" % user.status)
@@ -60,7 +60,7 @@ class GetCommand(BaseCommand):
     def __init__(self):
         super(GetCommand, self).__init__('get', 'Get a web page.')
 
-    def __call__(self, user, prot, args):
+    def __call__(self, user, prot, args, session):
         if args:
             start=time.time()
             cf = CountingFile()
@@ -80,7 +80,7 @@ class HelpCommand(BaseCommand):
     def __init__(self):
         super(HelpCommand, self).__init__('help', 'You need help.')
 
-    def __call__(self, user, prot, args):
+    def __call__(self, user, prot, args, session):
         rv=[]
         if args:
             c=all_commands.get(args.strip().lower(), None)

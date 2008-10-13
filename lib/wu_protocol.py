@@ -59,7 +59,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
                 args=a[1]
             if self.commands.has_key(a[0].lower()):
                 session=models.Session()
-                self.commands[a[0].lower()](self.get_user(msg, session), self, args)
+                self.commands[a[0].lower()](self.get_user(msg, session), self, args, session)
                 session.commit()
             else:
                 self.send_plain(msg['from'], 'No such command: ' + a[0])
