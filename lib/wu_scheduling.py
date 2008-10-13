@@ -1,3 +1,4 @@
+import re
 import models
 
 import datetime
@@ -25,15 +26,39 @@ class CheckSites(object):
         watch.last_update = datetime.datetime.now()
         session.commit()
 
+    def _check_patterns(self, body, watch):
+        rv=200
+        failed_pattern=None
+        for p in watch.patterns:
+            r=re.compile(p.regex)
+            if r.search(body):
+                if not p.positive:
+                    rv = -1
+                    failed_pattern=p.regex
+            else:
+                if p.positive:
+                    rv = -1
+                    failed_pattern=p.regex
+        return rv, failed_pattern
+
     def onSuccess(self, watch_id, page):
         print "Success fetching %d: %d bytes" % (watch_id, len(page))
         session = models.Session()
         watch=session.query(models.Watch).filter_by(id=watch_id).one()
-        if 200 != watch.status:
-            self.client.send_plain(watch.user.jid,
-                ":) Status of %s changed from %s to %d"
-                % (watch.url, `watch.status`, 200))
-        self.__updateDb(watch, 200, session)
+        status, pattern = self._check_patterns(page, watch)
+        print "Pattern status of %s: %d" % (watch.url, status)
+        if status == 200:
+            if status != watch.status:
+                self.client.send_plain(watch.user.jid,
+                    ":) Status of %s changed from %s to %d"
+                    % (watch.url, `watch.status`, status))
+        else:
+            self._reportError(watch, status, "Pattern failed: %s" % pattern)
+        self.__updateDb(watch, status, session)
+
+    def _reportError(self, watch, status, err_msg):
+        self.client.send_plain(watch.user.jid, ":( Error in %s: %d - %s"
+            % (watch.url, status, err_msg))
 
     def onError(self, watch_id, error):
         print "Error fetching %d: %s" % (watch_id, error)
@@ -43,6 +68,5 @@ class CheckSites(object):
             status=int(error.getErrorMessage()[0:3])
         except:
             status=-1
-        self.client.send_plain(watch.user.jid, ":( Error in %s: %d - %s"
-            % (watch.url, status, error.getErrorMessage()))
+        self._reportError(watch, status, error.getErrorMessage())
         self.__updateDb(watch, status, session)
