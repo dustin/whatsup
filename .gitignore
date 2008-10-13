@@ -1,4 +1,4 @@
-whatsup.log
+whatsup.log*
 whatsup.yml
 whatsup.conf
 *.sqlite3
