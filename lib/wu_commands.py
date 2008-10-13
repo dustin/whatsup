@@ -72,13 +72,14 @@ class GetCommand(BaseCommand):
         if args:
             start=time.time()
             cf = CountingFile()
+            jid=user.jid
             def onSuccess(value):
-                prot.send_plain(user.jid, "Got %d bytes in %.2fs" %
+                prot.send_plain(jid, "Got %d bytes in %.2fs" %
                     (cf.written, (time.time() - start)))
             client.downloadPage(args, cf).addCallbacks(
                 callback=onSuccess,
                 errback=lambda error:(prot.send_plain(
-                    user.jid, "Error getting the page: %s (%s)"
+                    jid, "Error getting the page: %s (%s)"
                     % (error.getErrorMessage(), dir(error)))))
         else:
             prot.send_plain(user.jid, "I need a URL to fetch.")
