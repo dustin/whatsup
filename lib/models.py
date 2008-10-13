@@ -80,7 +80,7 @@ _watches_table = Table('watches', _metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
     Column('url', String(1024)),
     Column('status', Integer),
-    Column('active', Boolean),
+    Column('active', Boolean, default=True),
     Column('quiet_until', DateTime),
     Column('last_update', DateTime)
 )
