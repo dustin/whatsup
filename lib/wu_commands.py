@@ -2,6 +2,7 @@ import time
 
 from twisted.words.xish import domish
 from twisted.web import client
+from sqlalchemy.orm import exc
 
 import models
 
@@ -113,3 +114,19 @@ class WatchCommand(BaseCommand):
         prot.send_plain(user.jid, "Started watching %s" % w.url)
 
 __register(WatchCommand)
+
+class UnwatchCommand(BaseCommand):
+
+    def __init__(self):
+        super(UnwatchCommand, self).__init__('unwatch', 'Stop watching a page.')
+
+    def __call__(self, user, prot, args, session):
+        try:
+            watch=session.query(models.Watch).filter_by(
+                url=args).filter_by(user_id=user.id).one()
+            session.delete(watch)
+            prot.send_plain(user.jid, "Stopped watching %s" % watch.url)
+        except exc.NoResultFound:
+            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+
+__register(UnwatchCommand)

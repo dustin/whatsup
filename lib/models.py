@@ -93,7 +93,7 @@ _patterns_table = Table('patterns', _metadata,
 )
 
 mapper(User, _users_table, properties={
-    'watches': relation(Watch)
+    'watches': relation(Watch, cascade="all, delete, delete-orphan")
     })
 mapper(Watch, _watches_table, properties={
     'user': relation(User),
