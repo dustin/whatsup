@@ -106,7 +106,7 @@ mapper(User, _users_table, properties={
     })
 mapper(Watch, _watches_table, properties={
     'user': relation(User),
-    'patterns': relation(Pattern)
+    'patterns': relation(Pattern, cascade="all, delete, delete-orphan")
     })
 mapper(Pattern, _patterns_table, properties={
     'watch': relation(Watch)
