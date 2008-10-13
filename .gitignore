@@ -1,5 +1,6 @@
 whatsup.log
 whatsup.yml
+whatsup.conf
 *.sqlite3
 *.pyc
 twistd.pid

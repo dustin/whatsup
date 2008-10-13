@@ -5,7 +5,8 @@ Configuration for whatsup.
 Copyright (c) 2008  Dustin Sallings <dustin@spy.net>
 """
 
-import yaml
+import ConfigParser
 
-CONF=yaml.load(open('whatsup.yml'))
-SCREEN_NAME = CONF['xmpp']['jid']
+CONF=ConfigParser.ConfigParser()
+CONF.read('whatsup.conf')
+SCREEN_NAME = CONF.get('xmpp', 'jid')

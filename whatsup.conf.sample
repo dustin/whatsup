@@ -1,0 +1,10 @@
+[general]
+loop_sleep: 60
+db: sqlite:///whatsup.sqlite3
+nthreads: 2
+watch_freq: 15
+googlekey: whatever
+
+[xmpp]
+jid: mybot@jabber.org/whatsupbot
+pass: password4mybot

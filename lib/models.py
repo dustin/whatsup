@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker, mapper, relation, backref, exc
 
 import wu_config
 
-_engine = create_engine(wu_config.CONF['general']['db'])
+_engine = create_engine(wu_config.CONF.get('general', 'db'))
 
 _metadata = MetaData()
 
