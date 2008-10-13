@@ -1,4 +1,5 @@
 import time
+import datetime
 import re
 import sre_constants
 
@@ -283,6 +284,9 @@ class QuietCommand(BaseCommand):
         super(QuietCommand, self).__init__('quiet', 'Temporarily quiet alerts.')
 
     def __call__(self, user, prot, args, session):
+        if not args:
+            prot.send_plain(user.jid, "How long would you like me to be quiet?")
+            return
         m = {'m': 1, 'h': 60, 'd': 1440}
         parts=args.split(' ', 1)
         time=parts[0]
@@ -291,7 +295,7 @@ class QuietCommand(BaseCommand):
         match = re.compile(r'(\d+)([hmd])').match(time)
         if match:
             t = int(match.groups()[0]) * m[match.groups()[1]]
-            u=datetime.datetime.now() - datetime.timedelta(seconds=t)
+            u=datetime.datetime.now() + datetime.timedelta(minutes=t)
 
             if url:
                 try:
@@ -303,7 +307,7 @@ class QuietCommand(BaseCommand):
                 except exc.NoResultFound:
                     prot.send_plain(user.jid, "Cannot find watch for %s" % url)
             else:
-                u.quiet_until=u
+                user.quiet_until=u
                 prot.send_plain(user.jid,
                     "You won't hear from me again until %s" % str(u))
         else:
