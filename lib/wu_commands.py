@@ -109,7 +109,7 @@ class WatchCommand(BaseCommand):
         w=models.Watch()
         w.url=args
         w.user=user
-        session.add(w)
+        user.watches.append(w)
         prot.send_plain(user.jid, "Started watching %s" % w.url)
 
 __register(WatchCommand)
