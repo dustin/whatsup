@@ -78,24 +78,26 @@ class Pattern(object):
     pass
 
 _users_table = Table('users', _metadata,
-    Column('id', Integer, primary_key=True),
-    Column('jid', String(128)),
+    Column('id', Integer, primary_key=True, index=True, unique=True),
+    Column('jid', String(128), index=True, unique=True),
     Column('active', Boolean, default=True),
     Column('status', String(50)),
     Column('quiet_until', DateTime))
 
 _watches_table = Table('watches', _metadata,
-    Column('id', Integer, primary_key=True),
-    Column('user_id', Integer, ForeignKey('users.id')),
+    Column('id', Integer, primary_key=True, index=True, unique=True),
+    Column('user_id', Integer, ForeignKey('users.id'), index=True),
     Column('url', String(1024)),
     Column('status', Integer),
     Column('active', Boolean, default=True),
     Column('quiet_until', DateTime),
-    Column('last_update', DateTime)
+    Column('last_update', DateTime),
 )
+Index('idx_watches_user_url', _watches_table.c.user_id, _watches_table.c.url,
+    unique=True)
 
 _patterns_table = Table('patterns', _metadata,
-    Column('id', Integer, primary_key=True),
+    Column('id', Integer, primary_key=True, index=True),
     Column('watch_id', Integer, ForeignKey('watches.id')),
     Column('positive', Boolean),
     Column('regex', String(1024))
