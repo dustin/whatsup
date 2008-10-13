@@ -18,7 +18,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
     def connectionMade(self):
         print "Connected!"
 
-        self.commands=dict([(x.name, x) for x in wu_commands.all_commands])
+        self.commands=wu_commands.all_commands
         print "Loaded commands: ", `self.commands.keys()`
 
         # send initial presence

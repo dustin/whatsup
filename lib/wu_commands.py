@@ -3,10 +3,11 @@ import time
 from twisted.words.xish import domish
 from twisted.web import client
 
-all_commands=[]
+all_commands={}
 
 def __register(cls):
-    all_commands.append(cls())
+    c=cls()
+    all_commands[c.name]=c
 
 class CountingFile(object):
     """A file-like object that just counts what's written to it."""
