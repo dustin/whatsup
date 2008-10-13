@@ -34,25 +34,28 @@ class User(Quietable):
                 s.close()
 
     @staticmethod
-    def update_status(jid, status):
+    def update_status(jid, status, session=None):
         """Find or create a user by jid and set the user's status"""
-        session = Session()
+        s=session
+        if not s:
+            s = Session()
         try:
             u = None
             if not status:
                 status="online"
             try:
-                u=User.by_jid(jid, session)
+                u=User.by_jid(jid, s)
             except exc.NoResultFound, e:
                 u=User()
                 u.jid=jid
 
             u.status=status
-            session.add(u)
-            session.commit()
+            s.add(u)
+            s.commit()
             return u
         finally:
-            session.close()
+            if not session:
+                s.close()
 
 class Watch(Quietable):
 

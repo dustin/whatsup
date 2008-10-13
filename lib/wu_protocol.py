@@ -48,7 +48,13 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
 
     def get_user(self, msg, session):
         jid=JID(msg['from'])
-        return models.User.by_jid(jid.userhost(), session)
+        try:
+            rv=models.User.by_jid(jid.userhost(), session)
+        except:
+            print "Getting user without the jid in the DB (%s)" % jid.full()
+            rv=models.User.update_status(jid.userhost(), None, session)
+            self.subscribe(jid)
+        return rv;
 
     def onMessage(self, msg):
         if msg["type"] == 'chat' and hasattr(msg, "body") and msg.body:
