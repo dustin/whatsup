@@ -19,7 +19,7 @@ whatsup=wu_protocol.WhatsupProtocol()
 whatsup.setHandlerParent(xmppclient)
 xmppclient.setServiceParent(application)
 
-site_checker = wu_scheduling.CheckSites()
+site_checker = wu_scheduling.CheckSites(whatsup)
 # Run this once in a few seconds...
 reactor.callLater(5, site_checker)
 
