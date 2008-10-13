@@ -275,3 +275,37 @@ class OffCommand(BaseCommand):
         prot.send_plain(user.jid, "Disabled monitoring.")
 
 __register(OffCommand)
+
+class QuietCommand(BaseCommand):
+    def __init__(self):
+        super(QuietCommand, self).__init__('quiet', 'Temporarily quiet alerts.')
+
+    def __call__(self, user, prot, args, session):
+        m = {'m': 1, 'h': 60, 'd': 1440}
+        parts=args.split(' ', 1)
+        time=parts[0]
+        url=None
+        if len(parts) > 1: url=parts[1]
+        match = re.compile(r'(\d+)([hmd])').match(time)
+        if match:
+            t = int(match.groups()[0]) * m[match.groups()[1]]
+            u=datetime.datetime.now() - datetime.timedelta(seconds=t)
+
+            if url:
+                try:
+                    w=session.query(models.Watch).filter_by(
+                        url=args).filter_by(user_id=user.id).one()
+                    w.quiet_until=u
+                    prot.send_plain(user.jid, "%s will be quiet until %s"
+                        % (w.url, str(u)))
+                except exc.NoResultFound:
+                    prot.send_plain(user.jid, "Cannot find watch for %s" % url)
+            else:
+                u.quiet_until=u
+                prot.send_plain(user.jid,
+                    "You won't hear from me again until %s" % str(u))
+        else:
+            prot.send_plain(user.jid, "I don't understand how long you want "
+                "me to quit.  Try 5m")
+
+__register(QuietCommand)
