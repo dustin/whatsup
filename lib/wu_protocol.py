@@ -27,6 +27,16 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
     def connectionLost(self, reason):
         print "Disconnected!"
 
+    def typing_notification(self, jid):
+        """Send a typing notification to the given jid."""
+
+        msg = domish.Element((None, "message"))
+        msg["to"] = jid
+        msg["from"] = wu_config.SCREEN_NAME
+        msg.addElement(('jabber:x:event', 'x')).addElement("composing")
+
+        self.send(msg)
+
     def send_plain(self, jid, content):
         msg = domish.Element((None, "message"))
         msg["to"] = jid
@@ -42,6 +52,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
 
     def onMessage(self, msg):
         if msg["type"] == 'chat' and hasattr(msg, "body") and msg.body:
+            self.typing_notification(msg['from'])
             a=str(msg.body).split(' ', 1)
             args = None
             if len(a) > 1:
