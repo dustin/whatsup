@@ -2,6 +2,7 @@ import re
 import datetime
 
 import models
+import wu_config
 
 from twisted.web import client
 from twisted.internet import defer
@@ -14,8 +15,8 @@ class CheckSites(object):
     def __call__(self):
         session = models.Session()
         try:
-            ds = defer.DeferredSemaphore(tokens=1)
-            for watch in models.Watch.todo(session):
+            ds = defer.DeferredSemaphore(tokens=wu_config.BATCH_CONCURRENCY)
+            for watch in models.Watch.todo(session, wu_config.WATCH_FREQ):
                 ds.run(self.__urlCheck, watch.id, watch.url)
         finally:
             session.close()
