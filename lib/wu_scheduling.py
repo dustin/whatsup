@@ -3,6 +3,7 @@ import models
 
 import datetime
 from twisted.web import client
+from twisted.internet import reactor
 
 class CheckSites(object):
 
@@ -13,15 +14,17 @@ class CheckSites(object):
         session = models.Session()
         try:
             todo = models.Watch.todo(session)
+            t=0
             for watch in todo:
-                client.getPage(str(watch.url), timeout=10).addCallbacks(
-                    callback=self.__mkCallback(watch.id, self.onSuccess),
-                    errback=self.__mkCallback(watch.id, self.onError))
+                t += 0.5
+                reactor.callLater(t, self.__urlCheck, watch.id, watch.url)
         finally:
             session.close()
 
-    def __mkCallback(self, id, f):
-        return lambda v: f(id, v)
+    def __urlCheck(self, watch_id, url):
+        client.getPage(str(url), timeout=10).addCallbacks(
+            callback=lambda page: self.onSuccess(watch_id, page),
+            errback=lambda err: self.onError(watch_id, err))
 
     def __updateDb(self, watch, status, session):
         watch.status=status
