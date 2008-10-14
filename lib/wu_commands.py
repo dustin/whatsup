@@ -60,6 +60,29 @@ class ArgRequired(BaseCommand):
     def process(self, user, prot, args, session):
         raise NotImplementedError()
 
+class WatchRequired(BaseCommand):
+
+    def __call__(self, user, prot, args, session):
+        if self.has_valid_args(args):
+            a=args.split(' ', 1)
+            newarg=None
+            if len(a) > 1: newarg=a[1]
+            try:
+                watch=session.query(models.Watch).filter_by(
+                    url=a[0]).filter_by(user_id=user.id).one()
+                self.process(user, prot, w, newarg, session)
+            except exc.NoResultFound:
+                prot.send_plain(user.jid, "Cannot find watch for %s" % a[0])
+        else:
+            prot.send_plain(user.jid, "Arguments required for %s:\n%s"
+                % (self.name, self.extended_help()))
+
+    def has_valid_args(self, args):
+        return args
+
+    def process(self, user, prot, watch, args, session):
+        raise NotImplementedError()
+
 class StatusCommand(BaseCommand):
 
     def __init__(self):
@@ -136,19 +159,14 @@ class WatchCommand(ArgRequired):
 
 __register(WatchCommand)
 
-class UnwatchCommand(ArgRequired):
+class UnwatchCommand(WatchRequired):
 
     def __init__(self):
         super(UnwatchCommand, self).__init__('unwatch', 'Stop watching a page.')
 
-    def process(self, user, prot, args, session):
-        try:
-            watch=session.query(models.Watch).filter_by(
-                url=args).filter_by(user_id=user.id).one()
-            session.delete(watch)
-            prot.send_plain(user.jid, "Stopped watching %s" % watch.url)
-        except exc.NoResultFound:
-            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+    def process(self, user, prot, watch, args, session):
+        session.delete(watch)
+        prot.send_plain(user.jid, "Stopped watching %s" % watch.url)
 
 __register(UnwatchCommand)
 
@@ -168,47 +186,38 @@ class WatchingCommand(BaseCommand):
 
 __register(WatchingCommand)
 
-class InspectCommand(ArgRequired):
+class InspectCommand(WatchRequired):
     def __init__(self):
         super(InspectCommand, self).__init__('inspect', 'Inspect a watch.')
 
-    def process(self, user, prot, args, session):
-        try:
-            w=session.query(models.Watch).filter_by(
-                url=args).filter_by(user_id=user.id).one()
-            rv=[]
-            rv.append("Status for %s: %s"
-                % (w.url, {True: 'enabled', False: 'disabled'}[w.active]))
-            if w.is_quiet():
-                rv.append("Alerts are quiet until %s" % str(w.quiet_until))
-            rv.append("Last update:  %s" % str(w.last_update))
-            if w.patterns:
-                for p in w.patterns:
-                    rv.append("\t%s %s" % ({True: '+', False: '-'}[p.positive],
-                        p.regex))
-            else:
-                rv.append("No match patterns configured.")
-            prot.send_plain(user.jid, "\n".join(rv))
-        except exc.NoResultFound:
-            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+    def process(self, user, prot, w, args, session):
+        rv=[]
+        rv.append("Status for %s: %s"
+            % (w.url, {True: 'enabled', False: 'disabled'}[w.active]))
+        if w.is_quiet():
+            rv.append("Alerts are quiet until %s" % str(w.quiet_until))
+        rv.append("Last update:  %s" % str(w.last_update))
+        if w.patterns:
+            for p in w.patterns:
+                rv.append("\t%s %s" % ({True: '+', False: '-'}[p.positive],
+                    p.regex))
+        else:
+            rv.append("No match patterns configured.")
+        prot.send_plain(user.jid, "\n".join(rv))
 
 __register(InspectCommand)
 
-class BaseMatchCommand(ArgRequired):
+class BaseMatchCommand(WatchRequired):
 
-    def process(self, user, prot, args, session):
+    def process(self, user, prot, w, args, session):
         try:
             url, regex=args.split(' ', 1)
             re.compile(regex) # Check the regex
-            w=session.query(models.Watch).filter_by(
-                url=url).filter_by(user_id=user.id).one()
             m=models.Pattern()
             m.positive=self.isPositive()
             m.regex=regex
             w.patterns.append(m)
             prot.send_plain(user.jid, "Added pattern.")
-        except exc.NoResultFound:
-            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
         except sre_constants.error, e:
             prot.send_plain(user.jid, "Error configuring pattern:  %s" % e.message)
 
@@ -230,48 +239,33 @@ class NegMatchCommand(BaseMatchCommand):
 
 __register(NegMatchCommand)
 
-class ClearMatchesCommand(ArgRequired):
+class ClearMatchesCommand(WatchRequired):
     def __init__(self):
         super(ClearMatchesCommand, self).__init__('clear_matches', 'Clear all matches for a URL')
 
-    def process(self, user, prot, args, session):
-        try:
-            w=session.query(models.Watch).filter_by(
-                url=args).filter_by(user_id=user.id).one()
-            w.patterns=[]
-            prot.send_plain(user.jid, "Cleared all matches for %s" % w.url)
-        except exc.NoResultFound:
-            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+    def process(self, user, prot, w, args, session):
+        w.patterns=[]
+        prot.send_plain(user.jid, "Cleared all matches for %s" % w.url)
 
 __register(ClearMatchesCommand)
 
-class DisableCommand(ArgRequired):
+class DisableCommand(WatchRequired):
     def __init__(self):
         super(DisableCommand, self).__init__('disable', 'Disable checks for a URL')
 
-    def process(self, user, prot, args, session):
-        try:
-            w=session.query(models.Watch).filter_by(
-                url=args).filter_by(user_id=user.id).one()
-            w.active=False
-            prot.send_plain(user.jid, "Disabled checks for %s" % w.url)
-        except exc.NoResultFound:
-            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+    def process(self, user, prot, w, args, session):
+        w.active=False
+        prot.send_plain(user.jid, "Disabled checks for %s" % w.url)
 
 __register(DisableCommand)
 
-class EnableCommand(ArgRequired):
+class EnableCommand(WatchRequired):
     def __init__(self):
         super(EnableCommand, self).__init__('enable', 'Enable checks for a URL')
 
-    def process(self, user, prot, args, session):
-        try:
-            w=session.query(models.Watch).filter_by(
-                url=args).filter_by(user_id=user.id).one()
-            w.active=True
-            prot.send_plain(user.jid, "Enabled checks for %s" % w.url)
-        except exc.NoResultFound:
-            prot.send_plain(user.jid, "Cannot find watch for %s" % args)
+    def process(self, user, prot, w, args, session):
+        w.active=True
+        prot.send_plain(user.jid, "Enabled checks for %s" % w.url)
 
 __register(EnableCommand)
 
