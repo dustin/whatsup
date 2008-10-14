@@ -45,6 +45,21 @@ class BaseCommand(object):
     def __call__(self, user, prot, args, session):
         raise NotImplementedError()
 
+class ArgRequired(BaseCommand):
+
+    def __call__(self, user, prot, args, session):
+        if self.has_valid_args(args):
+            self.process(user, prot, args, session)
+        else:
+            prot.send_plain(user.jid, "Arguments required for %s:\n%s"
+                % (self.name, self.extended_help()))
+
+    def has_valid_args(self, args):
+        return args
+
+    def process(self, user, prot, args, session):
+        raise NotImplementedError()
+
 class StatusCommand(BaseCommand):
 
     def __init__(self):
@@ -63,12 +78,12 @@ class StatusCommand(BaseCommand):
 
 __register(StatusCommand)
 
-class GetCommand(BaseCommand):
+class GetCommand(ArgRequired):
 
     def __init__(self):
         super(GetCommand, self).__init__('get', 'Get a web page.')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         if args:
             start=time.time()
             cf = CountingFile()
@@ -107,12 +122,12 @@ class HelpCommand(BaseCommand):
 
 __register(HelpCommand)
 
-class WatchCommand(BaseCommand):
+class WatchCommand(ArgRequired):
 
     def __init__(self):
         super(WatchCommand, self).__init__('watch', 'Start watching a page.')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         w=models.Watch()
         w.url=args
         w.user=user
@@ -121,12 +136,12 @@ class WatchCommand(BaseCommand):
 
 __register(WatchCommand)
 
-class UnwatchCommand(BaseCommand):
+class UnwatchCommand(ArgRequired):
 
     def __init__(self):
         super(UnwatchCommand, self).__init__('unwatch', 'Stop watching a page.')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         try:
             watch=session.query(models.Watch).filter_by(
                 url=args).filter_by(user_id=user.id).one()
@@ -153,11 +168,11 @@ class WatchingCommand(BaseCommand):
 
 __register(WatchingCommand)
 
-class InspectCommand(BaseCommand):
+class InspectCommand(ArgRequired):
     def __init__(self):
         super(InspectCommand, self).__init__('inspect', 'Inspect a watch.')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         try:
             w=session.query(models.Watch).filter_by(
                 url=args).filter_by(user_id=user.id).one()
@@ -179,9 +194,9 @@ class InspectCommand(BaseCommand):
 
 __register(InspectCommand)
 
-class BaseMatchCommand(BaseCommand):
+class BaseMatchCommand(ArgRequired):
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         try:
             url, regex=args.split(' ', 1)
             re.compile(regex) # Check the regex
@@ -215,11 +230,11 @@ class NegMatchCommand(BaseMatchCommand):
 
 __register(NegMatchCommand)
 
-class ClearMatchesCommand(BaseCommand):
+class ClearMatchesCommand(ArgRequired):
     def __init__(self):
         super(ClearMatchesCommand, self).__init__('clear_matches', 'Clear all matches for a URL')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         try:
             w=session.query(models.Watch).filter_by(
                 url=args).filter_by(user_id=user.id).one()
@@ -230,11 +245,11 @@ class ClearMatchesCommand(BaseCommand):
 
 __register(ClearMatchesCommand)
 
-class DisableCommand(BaseCommand):
+class DisableCommand(ArgRequired):
     def __init__(self):
         super(DisableCommand, self).__init__('disable', 'Disable checks for a URL')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         try:
             w=session.query(models.Watch).filter_by(
                 url=args).filter_by(user_id=user.id).one()
@@ -245,11 +260,11 @@ class DisableCommand(BaseCommand):
 
 __register(DisableCommand)
 
-class EnableCommand(BaseCommand):
+class EnableCommand(ArgRequired):
     def __init__(self):
         super(EnableCommand, self).__init__('enable', 'Enable checks for a URL')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         try:
             w=session.query(models.Watch).filter_by(
                 url=args).filter_by(user_id=user.id).one()
@@ -280,11 +295,11 @@ class OffCommand(BaseCommand):
 
 __register(OffCommand)
 
-class QuietCommand(BaseCommand):
+class QuietCommand(ArgRequired):
     def __init__(self):
         super(QuietCommand, self).__init__('quiet', 'Temporarily quiet alerts.')
 
-    def __call__(self, user, prot, args, session):
+    def process(self, user, prot, args, session):
         if not args:
             prot.send_plain(user.jid, "How long would you like me to be quiet?")
             return
