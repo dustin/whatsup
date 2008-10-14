@@ -5,7 +5,7 @@ import models
 import wu_config
 
 from twisted.web import client
-from twisted.internet import defer, task
+from twisted.internet import defer
 
 class CheckSites(object):
 
@@ -15,17 +15,11 @@ class CheckSites(object):
     def __call__(self):
         session = models.Session()
         try:
-            coop = task.Cooperator()
-            g=self.__urlGenerator(models.Watch.todo(session, wu_config.WATCH_FREQ))
-            for i in range(wu_config.BATCH_CONCURRENCY):
-                coop.coiterate(g)
+            ds = defer.DeferredSemaphore(tokens=wu_config.BATCH_CONCURRENCY)
+            for watch in models.Watch.todo(session, wu_config.WATCH_FREQ):
+                ds.run(self.__urlCheck, watch.id, watch.url)
         finally:
             session.close()
-
-    def __urlGenerator(self, todo):
-        urls = [(watch.id, watch.url) for watch in todo]
-        for (watch_id, url) in urls:
-            yield self.__urlCheck(watch_id, url)
 
     def __urlCheck(self, watch_id, url):
         return client.getPage(str(url), timeout=10).addCallbacks(
