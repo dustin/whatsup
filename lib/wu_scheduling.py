@@ -1,7 +1,9 @@
 import re
+import datetime
+import itertools
+
 import models
 
-import datetime
 from twisted.web import client
 from twisted.internet import reactor
 
@@ -14,10 +16,9 @@ class CheckSites(object):
         session = models.Session()
         try:
             todo = models.Watch.todo(session)
-            t=0
-            for watch in todo:
-                t += 0.5
-                reactor.callLater(t, self.__urlCheck, watch.id, watch.url)
+            for n, watch in itertools.izip(itertools.count(1), todo):
+                reactor.callLater(float(n)/2,
+                    self.__urlCheck, watch.id, watch.url)
         finally:
             session.close()
 
