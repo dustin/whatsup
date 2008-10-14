@@ -25,13 +25,10 @@ class CheckSites(object):
     def __urlGenerator(self, todo):
         urls = [(watch.id, watch.url) for watch in todo]
         for (watch_id, url) in urls:
-            d=client.getPage(str(url), timeout=10).addCallbacks(
-                callback=lambda page: self.onSuccess(watch_id, page),
-                errback=lambda err: self.onError(watch_id, err))
-            yield d
+            yield self.__urlCheck(watch_id, url)
 
     def __urlCheck(self, watch_id, url):
-        client.getPage(str(url), timeout=10).addCallbacks(
+        return client.getPage(str(url), timeout=10).addCallbacks(
             callback=lambda page: self.onSuccess(watch_id, page),
             errback=lambda err: self.onError(watch_id, err))
 
