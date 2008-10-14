@@ -1,11 +1,10 @@
 import re
 import datetime
-import itertools
 
 import models
 
 from twisted.web import client
-from twisted.internet import reactor
+from twisted.internet import defer
 
 class CheckSites(object):
 
@@ -15,10 +14,9 @@ class CheckSites(object):
     def __call__(self):
         session = models.Session()
         try:
-            todo = models.Watch.todo(session)
-            for n, watch in itertools.izip(itertools.count(1), todo):
-                reactor.callLater(float(n)/2,
-                    self.__urlCheck, watch.id, watch.url)
+            ds = defer.DeferredSemaphore(tokens=1)
+            for watch in models.Watch.todo(session):
+                ds.run(self.__urlCheck, watch.id, watch.url)
         finally:
             session.close()
 
