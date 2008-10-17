@@ -11,7 +11,6 @@ import wu_config
 import wu_protocol
 import wu_scheduling
 
-
 application = service.Application("whatsup")
 
 xmppclient = XMPPClient(jid.internJID(wu_config.SCREEN_NAME),
@@ -20,6 +19,7 @@ xmppclient.logTraffic = False
 whatsup=wu_protocol.WhatsupProtocol()
 whatsup.setHandlerParent(xmppclient)
 VersionHandler('Whatsup', wu_config.VERSION).setHandlerParent(xmppclient)
+wu_protocol.KeepAlive().setHandlerParent(xmppclient)
 xmppclient.setServiceParent(application)
 
 site_checker = wu_scheduling.CheckSites(whatsup)
