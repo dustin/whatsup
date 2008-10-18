@@ -229,6 +229,10 @@ class BaseMatchCommand(WatchRequired):
 class MatchCommand(BaseMatchCommand):
     def __init__(self):
         super(MatchCommand, self).__init__('match', 'Configure a match for a URL')
+        self.extended_help="""Add a positive regex match for a URL.
+
+Usage:  match http://www.example.com/ working
+"""
 
     def isPositive(self):
         return True
@@ -238,6 +242,10 @@ __register(MatchCommand)
 class NegMatchCommand(BaseMatchCommand):
     def __init__(self):
         super(NegMatchCommand, self).__init__('negmatch', 'Configure a negative match for a URL')
+        self.extended_help="""Add a negative regex match for a URL.
+
+Usage: negmatch http://www.example.com/ hac?[kx]ed.by
+"""
 
     def isPositive(self):
         return False
