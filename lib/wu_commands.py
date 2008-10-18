@@ -31,16 +31,21 @@ class CountingFile(object):
 class BaseCommand(object):
     """Base class for command processors."""
 
-    def __init__(self, name, help=None, extended_help=None):
-        self.name=name
-        self.help=help
-        self.__extended_help=extended_help
-
-    def extended_help(self):
+    def __get_extended_help(self):
         if self.__extended_help:
             return self.__extended_help
         else:
             return self.help
+
+    def __set_extended_help(self, v):
+        self.__extended_help=v
+
+    extended_help=property(__get_extended_help, __set_extended_help)
+
+    def __init__(self, name, help=None, extended_help=None):
+        self.name=name
+        self.help=help
+        self.extended_help=extended_help
 
     def __call__(self, user, prot, args, session):
         raise NotImplementedError()
@@ -52,7 +57,7 @@ class ArgRequired(BaseCommand):
             self.process(user, prot, args, session)
         else:
             prot.send_plain(user.jid, "Arguments required for %s:\n%s"
-                % (self.name, self.extended_help()))
+                % (self.name, self.extended_help))
 
     def has_valid_args(self, args):
         return args
@@ -75,7 +80,7 @@ class WatchRequired(BaseCommand):
                 prot.send_plain(user.jid, "Cannot find watch for %s" % a[0])
         else:
             prot.send_plain(user.jid, "Arguments required for %s:\n%s"
-                % (self.name, self.extended_help()))
+                % (self.name, self.extended_help))
 
     def has_valid_args(self, args):
         return args
@@ -135,7 +140,7 @@ class HelpCommand(BaseCommand):
             c=all_commands.get(args.strip().lower(), None)
             if c:
                 rv.append("Help for %s:\n" % c.name)
-                rv.append(c.extended_help())
+                rv.append(c.extended_help)
             else:
                 rv.append("Unknown command %s." % args)
         else:
