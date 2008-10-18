@@ -305,6 +305,18 @@ __register(OffCommand)
 class QuietCommand(ArgRequired):
     def __init__(self):
         super(QuietCommand, self).__init__('quiet', 'Temporarily quiet alerts.')
+        self.extended_help="""Quiet alerts for a period of time.
+
+Available time units:  m, h, d
+
+You can either quiet an individual URL like this:
+
+  quiet 5m http://broken.example.com/
+
+or from everything:
+
+  quiet 1h
+"""
 
     def process(self, user, prot, args, session):
         if not args:
