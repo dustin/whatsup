@@ -115,6 +115,8 @@ I'll look at web pages so you don't have to.  The most basic thing you can do to
 But I can do more.  Type "help" for more info.
 """
         self.send_plain(entity.full(), welcome_message)
+        for a in wu_config.ADMINS:
+            self.send_plain(a, "New subscriber: " + entity.userhost())
 
     def unsubscribedReceived(self, entity):
         print "Unsubscribed received from %s" % (entity.userhost())

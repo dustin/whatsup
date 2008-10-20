@@ -3,6 +3,8 @@ loop_sleep: 60
 db: sqlite:///whatsup.sqlite3
 batch_concurrency: 2
 watch_freq: 15
+# Space separated list of admins
+admins: dustin@sallings.org
 
 [xmpp]
 jid: mybot@jabber.org/whatsupbot

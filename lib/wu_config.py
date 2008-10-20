@@ -15,3 +15,5 @@ VERSION=commands.getoutput("git describe").strip()
 
 BATCH_CONCURRENCY=CONF.getint('general', 'batch_concurrency')
 WATCH_FREQ=CONF.getint('general', 'watch_freq')
+
+ADMINS=CONF.get("general", "admins").split(' ')
