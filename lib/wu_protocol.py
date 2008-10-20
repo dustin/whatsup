@@ -106,6 +106,15 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
 
     def subscribedReceived(self, entity):
         print "Subscribe received from %s" % (entity.userhost())
+        welcome_message="""Welcome to whatsup.
+
+I'll look at web pages so you don't have to.  The most basic thing you can do to add a monitor is the following:
+
+  watch http://www.mywebsite.com/
+
+But I can do more.  Type "help" for more info.
+"""
+        self.send_plain(entity.full(), welcome_message)
 
     def unsubscribedReceived(self, entity):
         print "Unsubscribed received from %s" % (entity.userhost())
