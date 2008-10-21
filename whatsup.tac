@@ -28,4 +28,4 @@ reactor.callLater(5, site_checker)
 
 # And do it periodically
 site_checker_loop = task.LoopingCall(site_checker)
-site_checker_loop.start(int(wu_config.CONF.get('general', 'loop_sleep')))
+site_checker_loop.start(int(wu_config.CONF.get('general', 'loop_sleep')), False)
