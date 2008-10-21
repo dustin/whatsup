@@ -184,8 +184,9 @@ class WatchingCommand(BaseCommand):
         rv=[("You are watching %d URLs:" % len(user.watches))]
         h={True: 'enabled', False: 'disabled'}
         for w in user.watches:
-            watches.append("%s %s - (%s -- last=%s)" % (w.status_emoticon(),
-                w.url, h[w.active], `w.status`))
+            watches.append("%s %s - (%s -- %d patterns, last=%s)"
+                % (w.status_emoticon(), w.url, h[w.active], len(w.patterns),
+                `w.status`))
         rv += sorted(watches)
         prot.send_plain(user.jid, "\n".join(rv))
 
