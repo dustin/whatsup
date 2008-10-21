@@ -75,7 +75,7 @@ class WatchRequired(BaseCommand):
             try:
                 watch=session.query(models.Watch).filter_by(
                     url=a[0]).filter_by(user_id=user.id).one()
-                self.process(user, prot, w, newarg, session)
+                self.process(user, prot, watch, newarg, session)
             except exc.NoResultFound:
                 prot.send_plain(user.jid, "Cannot find watch for %s" % a[0])
         else:
