@@ -336,7 +336,7 @@ or from everything:
             if url:
                 try:
                     w=session.query(models.Watch).filter_by(
-                        url=args).filter_by(user_id=user.id).one()
+                        url=url).filter_by(user_id=user.id).one()
                     w.quiet_until=u
                     prot.send_plain(user.jid, "%s will be quiet until %s"
                         % (w.url, str(u)))
