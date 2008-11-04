@@ -217,7 +217,7 @@ class BaseMatchCommand(WatchRequired):
 
     def process(self, user, prot, w, args, session):
         try:
-            url, regex=args.split(' ', 1)
+            regex=args
             re.compile(regex) # Check the regex
             m=models.Pattern()
             m.positive=self.isPositive()
