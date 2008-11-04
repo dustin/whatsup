@@ -5,7 +5,7 @@ unavailable.
 
 # Usage
 
-IM `help` to [whatsup@jabber.org](xmpp://whatsup@jabber.org) to see what you
+IM `help` to [whatsup@jabber.org](xmpp:whatsup@jabber.org) to see what you
 can do.
 
 # When Checks Are Performed
