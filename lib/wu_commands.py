@@ -54,6 +54,7 @@ class BaseCommand(object):
         try:
             s=str(u)
             # XXX:  Any good URL validators?
+            return True
         except:
             return False
 
