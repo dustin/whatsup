@@ -54,7 +54,7 @@ class CheckSites(object):
             status, pattern = self._check_patterns(page, watch)
             print "Pattern status of %s: %d" % (watch.url, status)
             if status == 200:
-                if status != watch.status:
+                if status != watch.status and not watch.user.is_quiet():
                     self.client.send_plain(watch.user.jid,
                         ":) Status of %s changed from %s to %d"
                         % (watch.url, `watch.status`, status))
