@@ -65,8 +65,11 @@ class CheckSites(object):
             session.close()
 
     def _reportError(self, watch, status, err_msg):
-        self.client.send_plain(watch.user.jid, ":( Error in %s: %d - %s"
-            % (watch.url, status, err_msg))
+        msg = ":( Error in %s: %d - %s" % (watch.url, status, err_msg)
+        if watch.user.is_quiet():
+            print "User is quiet, not sending", msg
+        else:
+            self.client.send_plain(watch.user.jid, msg)
 
     def onError(self, watch_id, error):
         print "Error fetching %d: %s" % (watch_id, error)
