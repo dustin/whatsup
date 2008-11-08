@@ -79,7 +79,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
     def onMessage(self, msg):
         if msg["type"] == 'chat' and hasattr(msg, "body") and msg.body:
             self.typing_notification(msg['from'])
-            a=str(msg.body).split(' ', 1)
+            a=unicode(msg.body).split(' ', 1)
             args = None
             if len(a) > 1:
                 args=a[1]
