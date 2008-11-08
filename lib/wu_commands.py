@@ -50,6 +50,13 @@ class BaseCommand(object):
     def __call__(self, user, prot, args, session):
         raise NotImplementedError()
 
+    def is_a_url(self, u):
+        try:
+            s=str(u)
+            # XXX:  Any good URL validators?
+        except:
+            return False
+
 class ArgRequired(BaseCommand):
 
     def __call__(self, user, prot, args, session):
@@ -83,7 +90,7 @@ class WatchRequired(BaseCommand):
                 % (self.name, self.extended_help))
 
     def has_valid_args(self, args):
-        return args
+        return self.is_a_url(args)
 
     def process(self, user, prot, watch, args, session):
         raise NotImplementedError()
@@ -127,6 +134,9 @@ class GetCommand(ArgRequired):
         else:
             prot.send_plain(user.jid, "I need a URL to fetch.")
 
+    def has_valid_args(self, args):
+        return self.is_a_url(args)
+
 __register(GetCommand)
 
 class HelpCommand(BaseCommand):
@@ -161,6 +171,9 @@ class WatchCommand(ArgRequired):
         w.user=user
         user.watches.append(w)
         prot.send_plain(user.jid, "Started watching %s" % w.url)
+
+    def has_valid_args(self, args):
+        return self.is_a_url(args)
 
 __register(WatchCommand)
 
