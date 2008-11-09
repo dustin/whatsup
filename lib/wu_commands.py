@@ -362,6 +362,6 @@ or from everything:
                     "You won't hear from me again until %s" % str(u))
         else:
             prot.send_plain(user.jid, "I don't understand how long you want "
-                "me to quit.  Try 5m")
+                "me to be quiet.  Try 5m")
 
 __register(QuietCommand)
