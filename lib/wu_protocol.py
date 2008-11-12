@@ -29,6 +29,8 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
         print "Loaded commands: ", `self.commands.keys()`
 
         # send initial presence
+        self._watching=-1
+        self._users=-1
         self.update_presence()
 
     def update_presence(self):
