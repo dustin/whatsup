@@ -7,8 +7,8 @@ from wokkel.xmppim import MessageProtocol, PresenceClientProtocol
 from wokkel.xmppim import AvailablePresence
 from wokkel.client import XMPPHandler
 
-import wu_commands
-import wu_config
+import xmpp_commands
+import config
 import models
 
 class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
@@ -25,7 +25,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
     def connectionMade(self):
         print "Connected!"
 
-        self.commands=wu_commands.all_commands
+        self.commands=xmpp_commands.all_commands
         print "Loaded commands: ", `self.commands.keys()`
 
         # send initial presence
@@ -54,7 +54,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
 
         msg = domish.Element((None, "message"))
         msg["to"] = jid
-        msg["from"] = wu_config.SCREEN_NAME
+        msg["from"] = config.SCREEN_NAME
         msg.addElement(('jabber:x:event', 'x')).addElement("composing")
 
         self.send(msg)
@@ -62,7 +62,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
     def send_plain(self, jid, content):
         msg = domish.Element((None, "message"))
         msg["to"] = jid
-        msg["from"] = wu_config.SCREEN_NAME
+        msg["from"] = config.SCREEN_NAME
         msg["type"] = 'chat'
         msg.addElement("body", content=content)
 
@@ -121,7 +121,7 @@ But I can do more.  Type "help" for more info.
         try:
             msg = "New subscriber: %s ( %d )" % (entity.userhost(),
                 session.query(models.User).count())
-            for a in wu_config.ADMINS:
+            for a in config.ADMINS:
                 self.send_plain(a, msg)
         finally:
             session.close()

@@ -3,9 +3,9 @@ import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker, mapper, relation, backref, exc
 
-import wu_config
+from whatsup import config
 
-_engine = create_engine(wu_config.CONF.get('general', 'db'))
+_engine = create_engine(config.CONF.get('general', 'db'))
 
 _metadata = MetaData()
 
