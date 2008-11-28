@@ -1,4 +1,6 @@
+import sys
 import time
+import types
 import datetime
 import re
 import sre_constants
@@ -10,10 +12,6 @@ from sqlalchemy.orm import exc
 import models
 
 all_commands={}
-
-def __register(cls):
-    c=cls()
-    all_commands[c.name]=c
 
 class CountingFile(object):
     """A file-like object that just counts what's written to it."""
@@ -112,8 +110,6 @@ class StatusCommand(BaseCommand):
             rv.append("All alerts are quieted until %s" % str(user.quiet_until))
         prot.send_plain(user.jid, "\n".join(rv))
 
-__register(StatusCommand)
-
 class GetCommand(ArgRequired):
 
     def __init__(self):
@@ -138,8 +134,6 @@ class GetCommand(ArgRequired):
     def has_valid_args(self, args):
         return self.is_a_url(args)
 
-__register(GetCommand)
-
 class HelpCommand(BaseCommand):
 
     def __init__(self):
@@ -159,8 +153,6 @@ class HelpCommand(BaseCommand):
                 rv.append('%s\t%s' % (k, all_commands[k].help))
         prot.send_plain(user.jid, "\n".join(rv))
 
-__register(HelpCommand)
-
 class WatchCommand(ArgRequired):
 
     def __init__(self):
@@ -176,8 +168,6 @@ class WatchCommand(ArgRequired):
     def has_valid_args(self, args):
         return self.is_a_url(args)
 
-__register(WatchCommand)
-
 class UnwatchCommand(WatchRequired):
 
     def __init__(self):
@@ -186,8 +176,6 @@ class UnwatchCommand(WatchRequired):
     def process(self, user, prot, watch, args, session):
         session.delete(watch)
         prot.send_plain(user.jid, "Stopped watching %s" % watch.url)
-
-__register(UnwatchCommand)
 
 class WatchingCommand(BaseCommand):
     def __init__(self):
@@ -203,8 +191,6 @@ class WatchingCommand(BaseCommand):
                 `w.status`))
         rv += sorted(watches)
         prot.send_plain(user.jid, "\n".join(rv))
-
-__register(WatchingCommand)
 
 class InspectCommand(WatchRequired):
     def __init__(self):
@@ -224,8 +210,6 @@ class InspectCommand(WatchRequired):
         else:
             rv.append("No match patterns configured.")
         prot.send_plain(user.jid, "\n".join(rv))
-
-__register(InspectCommand)
 
 class BaseMatchCommand(WatchRequired):
 
@@ -252,8 +236,6 @@ Usage:  match http://www.example.com/ working
     def isPositive(self):
         return True
 
-__register(MatchCommand)
-
 class NegMatchCommand(BaseMatchCommand):
     def __init__(self):
         super(NegMatchCommand, self).__init__('negmatch', 'Configure a negative match for a URL')
@@ -265,8 +247,6 @@ Usage: negmatch http://www.example.com/ hac?[kx]ed.by
     def isPositive(self):
         return False
 
-__register(NegMatchCommand)
-
 class ClearMatchesCommand(WatchRequired):
     def __init__(self):
         super(ClearMatchesCommand, self).__init__('clear_matches', 'Clear all matches for a URL')
@@ -274,8 +254,6 @@ class ClearMatchesCommand(WatchRequired):
     def process(self, user, prot, w, args, session):
         w.patterns=[]
         prot.send_plain(user.jid, "Cleared all matches for %s" % w.url)
-
-__register(ClearMatchesCommand)
 
 class DisableCommand(WatchRequired):
     def __init__(self):
@@ -285,8 +263,6 @@ class DisableCommand(WatchRequired):
         w.active=False
         prot.send_plain(user.jid, "Disabled checks for %s" % w.url)
 
-__register(DisableCommand)
-
 class EnableCommand(WatchRequired):
     def __init__(self):
         super(EnableCommand, self).__init__('enable', 'Enable checks for a URL')
@@ -294,8 +270,6 @@ class EnableCommand(WatchRequired):
     def process(self, user, prot, w, args, session):
         w.active=True
         prot.send_plain(user.jid, "Enabled checks for %s" % w.url)
-
-__register(EnableCommand)
 
 class OnCommand(BaseCommand):
     def __init__(self):
@@ -305,8 +279,6 @@ class OnCommand(BaseCommand):
         user.active=True
         prot.send_plain(user.jid, "Enabled monitoring.")
 
-__register(OnCommand)
-
 class OffCommand(BaseCommand):
     def __init__(self):
         super(OffCommand, self).__init__('off', 'Disable monitoring.')
@@ -314,8 +286,6 @@ class OffCommand(BaseCommand):
     def __call__(self, user, prot, args, session):
         user.active=False
         prot.send_plain(user.jid, "Disabled monitoring.")
-
-__register(OffCommand)
 
 class QuietCommand(ArgRequired):
     def __init__(self):
@@ -364,4 +334,14 @@ or from everything:
             prot.send_plain(user.jid, "I don't understand how long you want "
                 "me to be quiet.  Try 5m")
 
-__register(QuietCommand)
+# Automatically register commands.
+for __thing_name in dir(sys.modules[__name__]):
+    t = getattr(sys.modules[__name__], __thing_name)
+    if isinstance(type, type(t)):
+        if BaseCommand in t.__mro__:
+            try:
+                i = t()
+                all_commands[i.name] = i
+            except TypeError:
+                # Ignore abstract bases
+                pass
