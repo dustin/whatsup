@@ -335,13 +335,11 @@ or from everything:
                 "me to be quiet.  Try 5m")
 
 # Automatically register commands.
-for __thing_name in dir(sys.modules[__name__]):
-    t = getattr(sys.modules[__name__], __thing_name)
-    if isinstance(type, type(t)):
-        if BaseCommand in t.__mro__:
-            try:
-                i = t()
-                all_commands[i.name] = i
-            except TypeError:
-                # Ignore abstract bases
-                pass
+for __t in (t for t in globals().values() if isinstance(type, type(t))):
+    if BaseCommand in __t.__mro__:
+        try:
+            i = __t()
+            all_commands[i.name] = i
+        except TypeError:
+            # Ignore abstract bases
+            pass
