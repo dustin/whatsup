@@ -4,6 +4,7 @@ import types
 import datetime
 import re
 import sre_constants
+import urlparse
 
 from twisted.words.xish import domish
 from twisted.web import client
@@ -50,9 +51,8 @@ class BaseCommand(object):
 
     def is_a_url(self, u):
         try:
-            s=str(u)
-            # XXX:  Any good URL validators?
-            return True
+            parsed = urlparse.urlparse(str(u))
+            return parsed.scheme in ['http', 'https'] and parsed.netloc
         except:
             return False
 
