@@ -8,6 +8,7 @@ import urlparse
 
 from twisted.words.xish import domish
 from twisted.web import client
+from twisted.internet import reactor
 from sqlalchemy.orm import exc
 
 import models
@@ -334,7 +335,33 @@ or from everything:
             prot.send_plain(user.jid, "I don't understand how long you want "
                 "me to be quiet.  Try 5m")
 
-# Automatically register commands.
+class WaitForSite(ArgRequired):
+    def __init__(self):
+        super(WaitForSite, self).__init__('waitforsite',
+            'Wait for a site to become available')
+        self.extended_help="""Wait for a site to become available.
+
+Continue checking for the availability of a site until it becomes available."""
+
+    def process(self, user, prot, args, session):
+        self.try_url(user.jid, prot, str(args))
+        prot.send_plain(user.jid, "I'll let you know when %s is up." % args)
+
+    def try_url(self, jid, prot, url, attempt=1):
+        start=time.time()
+        cf = CountingFile()
+        def onSuccess(value):
+            prot.send_plain(jid, "Got %d bytes from %s in %.2fs on attempt %d" %
+                (cf.written, url, (time.time() - start), attempt))
+        def onError(e):
+            reactor.callLater(60, self.try_url, jid, prot, url, attempt + 1)
+
+        client.downloadPage(url, cf).addCallbacks(
+            callback=onSuccess, errback=onError)
+
+    def has_valid_args(self, args):
+        return self.is_a_url(args)
+
 for __t in (t for t in globals().values() if isinstance(type, type(t))):
     if BaseCommand in __t.__mro__:
         try:
