@@ -336,6 +336,7 @@ or from everything:
                 "me to be quiet.  Try 5m")
 
 class WaitForSite(ArgRequired):
+    MAX_TIME = 4 * 3600 # How long a wait will be allowed to run
     def __init__(self):
         super(WaitForSite, self).__init__('waitforsite',
             'Wait for a site to become available')
@@ -344,17 +345,23 @@ class WaitForSite(ArgRequired):
 Continue checking for the availability of a site until it becomes available."""
 
     def process(self, user, prot, args, session):
-        self.try_url(user.jid, prot, str(args))
+        self.try_url(user.jid, prot, str(args), time.time())
         prot.send_plain(user.jid, "I'll let you know when %s is up." % args)
 
-    def try_url(self, jid, prot, url, attempt=1):
+    def try_url(self, jid, prot, url, start_time, attempt=1):
         start=time.time()
         cf = CountingFile()
         def onSuccess(value):
             prot.send_plain(jid, "Got %d bytes from %s in %.2fs on attempt %d" %
                 (cf.written, url, (time.time() - start), attempt))
         def onError(e):
-            reactor.callLater(60, self.try_url, jid, prot, url, attempt + 1)
+            if time.time() - start_time > self.MAX_TIME:
+                prot.send_plain(jid,
+                    "Giving up on %s after %d attempts in %.2f hours" %
+                    (url, attempt, (time.time() - start_time) / 3600))
+            else:
+                reactor.callLater(60, self.try_url, jid, prot, url, start_time,
+                    attempt + 1)
 
         client.downloadPage(url, cf).addCallbacks(
             callback=onSuccess, errback=onError)
