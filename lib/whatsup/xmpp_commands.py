@@ -355,10 +355,16 @@ Continue checking for the availability of a site until it becomes available."""
             prot.send_plain(jid, "Got %d bytes from %s in %.2fs on attempt %d" %
                 (cf.written, url, (time.time() - start), attempt))
         def onError(e):
+            if attempt == 1:
+                prot.send_plain(jid, "%s failed first request with %s. "
+                    "I'll keep trying for %d hours"
+                    % (url, e.getErrorMessage(), self.MAX_TIME / 3600))
             if time.time() - start_time > self.MAX_TIME:
                 prot.send_plain(jid,
-                    "Giving up on %s after %d attempts in %.2f hours" %
-                    (url, attempt, (time.time() - start_time) / 3600))
+                    "Giving up on %s after %d attempts in %.2f hours. "
+                    "Most recent error was %s"
+                    % (url, attempt, (time.time() - start_time) / 3600,
+                        e.getErrorMessage()))
             else:
                 reactor.callLater(60, self.try_url, jid, prot, url, start_time,
                     attempt + 1)
