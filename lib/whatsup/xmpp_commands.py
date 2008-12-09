@@ -124,7 +124,7 @@ class GetCommand(ArgRequired):
             def onSuccess(value):
                 prot.send_plain(jid, "Got %d bytes in %.2fs" %
                     (cf.written, (time.time() - start)))
-            client.downloadPage(args, cf).addCallbacks(
+            client.downloadPage(str(args), cf).addCallbacks(
                 callback=onSuccess,
                 errback=lambda error:(prot.send_plain(
                     jid, "Error getting the page: %s (%s)"
