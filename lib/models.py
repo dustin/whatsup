@@ -85,6 +85,9 @@ class Watch(Quietable):
             rv=":("
         return rv
 
+    def is_quiet(self):
+        return super(Watch, self).is_quiet() or self.user.is_quiet()
+
 class Pattern(object):
     pass
 
