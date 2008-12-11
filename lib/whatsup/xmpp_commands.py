@@ -202,7 +202,10 @@ class InspectCommand(WatchRequired):
         rv.append("Status for %s: %s"
             % (w.url, {True: 'enabled', False: 'disabled'}[w.active]))
         if w.is_quiet():
-            rv.append("Alerts are quiet until %s" % str(w.quiet_until))
+            qu = w.quiet_until
+            if not qu:
+                qu = user.quiet_until
+            rv.append("Alerts are quiet until %s" % str(qu))
         rv.append("Last update:  %s" % str(w.last_update))
         if w.patterns:
             for p in w.patterns:
