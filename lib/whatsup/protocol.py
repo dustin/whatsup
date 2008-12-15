@@ -33,18 +33,15 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
         self._users=-1
         self.update_presence()
 
-    def update_presence(self):
-        session=models.Session()
-        try:
-            watching=session.query(models.Watch).count()
-            users=session.query(models.User).count()
-            if watching != self._watching or users != self._users:
-                status="Watching %s URLs for %s users" % (watching, users)
-                self.available(None, None, {None: status})
-                self._watching = watching
-                self._users = users
-        finally:
-            session.close()
+    @models.wants_session
+    def update_presence(self, session):
+        watching=session.query(models.Watch).count()
+        users=session.query(models.User).count()
+        if watching != self._watching or users != self._users:
+            status="Watching %s URLs for %s users" % (watching, users)
+            self.available(None, None, {None: status})
+            self._watching = watching
+            self._users = users
 
     def connectionLost(self, reason):
         print "Disconnected!"
@@ -78,6 +75,12 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
             self.subscribe(jid)
         return rv;
 
+    @models.wants_session
+    def _handleCommand(self, msg, cmd, args, session):
+        self.commands[cmd.lower()](self.get_user(msg, session),
+            self, args, session)
+        session.commit()
+
     def onMessage(self, msg):
         if msg["type"] == 'chat' and hasattr(msg, "body") and msg.body:
             self.typing_notification(msg['from'])
@@ -86,13 +89,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
             if len(a) > 1:
                 args=a[1]
             if self.commands.has_key(a[0].lower()):
-                session=models.Session()
-                try:
-                    self.commands[a[0].lower()](self.get_user(msg, session),
-                        self, args, session)
-                    session.commit()
-                finally:
-                    session.close()
+                self._handleCommand(msg, a[0], args)
             else:
                 self.send_plain(msg['from'], 'No such command: ' + a[0])
             self.update_presence()
@@ -106,7 +103,8 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
         print "Unavailable from %s" % entity.userhost()
         models.User.update_status(entity.userhost(), 'unavailable')
 
-    def subscribedReceived(self, entity):
+    @models.wants_session
+    def subscribedReceived(self, entity, session):
         print "Subscribe received from %s" % (entity.userhost())
         welcome_message="""Welcome to whatsup.
 
@@ -117,14 +115,10 @@ I'll look at web pages so you don't have to.  The most basic thing you can do to
 But I can do more.  Type "help" for more info.
 """
         self.send_plain(entity.full(), welcome_message)
-        session = models.Session()
-        try:
-            msg = "New subscriber: %s ( %d )" % (entity.userhost(),
-                session.query(models.User).count())
-            for a in config.ADMINS:
-                self.send_plain(a, msg)
-        finally:
-            session.close()
+        msg = "New subscriber: %s ( %d )" % (entity.userhost(),
+            session.query(models.User).count())
+        for a in config.ADMINS:
+            self.send_plain(a, msg)
 
     def unsubscribedReceived(self, entity):
         print "Unsubscribed received from %s" % (entity.userhost())
