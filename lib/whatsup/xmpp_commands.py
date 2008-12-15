@@ -15,6 +15,24 @@ import models
 
 all_commands={}
 
+def arg_required(validator=lambda n: n):
+    def f(orig):
+        def every(self, user, prot, args, session):
+            if validator(args):
+                orig(self, user, prot, args, session)
+            else:
+                prot.send_plain(user.jid, "Arguments required for %s:\n%s"
+                    % (self.name, self.extended_help))
+        return every
+    return f
+
+def is_a_url(u):
+    try:
+        parsed = urlparse.urlparse(str(u))
+        return parsed.scheme in ['http', 'https'] and parsed.netloc
+    except:
+        return False
+
 class CountingFile(object):
     """A file-like object that just counts what's written to it."""
     def __init__(self):
@@ -50,30 +68,9 @@ class BaseCommand(object):
     def __call__(self, user, prot, args, session):
         raise NotImplementedError()
 
-    def is_a_url(self, u):
-        try:
-            parsed = urlparse.urlparse(str(u))
-            return parsed.scheme in ['http', 'https'] and parsed.netloc
-        except:
-            return False
-
-class ArgRequired(BaseCommand):
-
-    def __call__(self, user, prot, args, session):
-        if self.has_valid_args(args):
-            self.process(user, prot, args, session)
-        else:
-            prot.send_plain(user.jid, "Arguments required for %s:\n%s"
-                % (self.name, self.extended_help))
-
-    def has_valid_args(self, args):
-        return args
-
-    def process(self, user, prot, args, session):
-        raise NotImplementedError()
-
 class WatchRequired(BaseCommand):
 
+    @arg_required(is_a_url)
     def __call__(self, user, prot, args, session):
         if self.has_valid_args(args):
             a=args.split(' ', 1)
@@ -88,9 +85,6 @@ class WatchRequired(BaseCommand):
         else:
             prot.send_plain(user.jid, "Arguments required for %s:\n%s"
                 % (self.name, self.extended_help))
-
-    def has_valid_args(self, args):
-        return self.is_a_url(args)
 
     def process(self, user, prot, watch, args, session):
         raise NotImplementedError()
@@ -111,29 +105,24 @@ class StatusCommand(BaseCommand):
             rv.append("All alerts are quieted until %s" % str(user.quiet_until))
         prot.send_plain(user.jid, "\n".join(rv))
 
-class GetCommand(ArgRequired):
+class GetCommand(BaseCommand):
 
     def __init__(self):
         super(GetCommand, self).__init__('get', 'Get a web page.')
 
-    def process(self, user, prot, args, session):
-        if args:
-            start=time.time()
-            cf = CountingFile()
-            jid=user.jid
-            def onSuccess(value):
-                prot.send_plain(jid, "Got %d bytes in %.2fs" %
-                    (cf.written, (time.time() - start)))
-            client.downloadPage(str(args), cf).addCallbacks(
-                callback=onSuccess,
-                errback=lambda error:(prot.send_plain(
-                    jid, "Error getting the page: %s (%s)"
-                    % (error.getErrorMessage(), dir(error)))))
-        else:
-            prot.send_plain(user.jid, "I need a URL to fetch.")
-
-    def has_valid_args(self, args):
-        return self.is_a_url(args)
+    @arg_required(is_a_url)
+    def __call__(self, user, prot, args, session):
+        start=time.time()
+        cf = CountingFile()
+        jid=user.jid
+        def onSuccess(value):
+            prot.send_plain(jid, "Got %d bytes in %.2fs" %
+                (cf.written, (time.time() - start)))
+        client.downloadPage(str(args), cf).addCallbacks(
+            callback=onSuccess,
+            errback=lambda error:(prot.send_plain(
+                jid, "Error getting the page: %s (%s)"
+                % (error.getErrorMessage(), dir(error)))))
 
 class HelpCommand(BaseCommand):
 
@@ -154,20 +143,18 @@ class HelpCommand(BaseCommand):
                 rv.append('%s\t%s' % (k, all_commands[k].help))
         prot.send_plain(user.jid, "\n".join(rv))
 
-class WatchCommand(ArgRequired):
+class WatchCommand(BaseCommand):
 
     def __init__(self):
         super(WatchCommand, self).__init__('watch', 'Start watching a page.')
 
-    def process(self, user, prot, args, session):
+    @arg_required(is_a_url)
+    def __call__(self, user, prot, args, session):
         w=models.Watch()
         w.url=args
         w.user=user
         user.watches.append(w)
         prot.send_plain(user.jid, "Started watching %s" % w.url)
-
-    def has_valid_args(self, args):
-        return self.is_a_url(args)
 
 class UnwatchCommand(WatchRequired):
 
@@ -291,7 +278,7 @@ class OffCommand(BaseCommand):
         user.active=False
         prot.send_plain(user.jid, "Disabled monitoring.")
 
-class QuietCommand(ArgRequired):
+class QuietCommand(BaseCommand):
     def __init__(self):
         super(QuietCommand, self).__init__('quiet', 'Temporarily quiet alerts.')
         self.extended_help="""Quiet alerts for a period of time.
@@ -307,10 +294,8 @@ or from everything:
   quiet 1h
 """
 
-    def process(self, user, prot, args, session):
-        if not args:
-            prot.send_plain(user.jid, "How long would you like me to be quiet?")
-            return
+    @arg_required()
+    def __call__(self, user, prot, args, session):
         m = {'m': 1, 'h': 60, 'd': 1440}
         parts=args.split(' ', 1)
         time=parts[0]
@@ -338,7 +323,7 @@ or from everything:
             prot.send_plain(user.jid, "I don't understand how long you want "
                 "me to be quiet.  Try 5m")
 
-class WaitForSite(ArgRequired):
+class WaitForSite(BaseCommand):
     MAX_TIME = 4 * 3600 # How long a wait will be allowed to run
     def __init__(self):
         super(WaitForSite, self).__init__('waitforsite',
@@ -347,7 +332,8 @@ class WaitForSite(ArgRequired):
 
 Continue checking for the availability of a site until it becomes available."""
 
-    def process(self, user, prot, args, session):
+    @arg_required(is_a_url)
+    def __call__(self, user, prot, args, session):
         self.try_url(user.jid, prot, str(args), time.time())
         prot.send_plain(user.jid, "I'll let you know when %s is up." % args)
 
@@ -374,9 +360,6 @@ Continue checking for the availability of a site until it becomes available."""
 
         client.downloadPage(url, cf).addCallbacks(
             callback=onSuccess, errback=onError)
-
-    def has_valid_args(self, args):
-        return self.is_a_url(args)
 
 for __t in (t for t in globals().values() if isinstance(type, type(t))):
     if BaseCommand in __t.__mro__:
