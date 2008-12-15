@@ -85,9 +85,7 @@ class WhatsupProtocol(MessageProtocol, PresenceClientProtocol):
         if msg["type"] == 'chat' and hasattr(msg, "body") and msg.body:
             self.typing_notification(msg['from'])
             a=unicode(msg.body).split(' ', 1)
-            args = None
-            if len(a) > 1:
-                args=a[1]
+            args = a[1] if len(a) > 1 else None
             if self.commands.has_key(a[0].lower()):
                 self._handleCommand(msg, a[0], args)
             else:
