@@ -12,6 +12,15 @@ _metadata = MetaData()
 Session = sessionmaker()
 Session.configure(bind=_engine)
 
+def wants_session(orig):
+    def f(*args):
+        session = Session()
+        try:
+            return orig(*args + (session,))
+        finally:
+            session.close()
+    return f
+
 class Quietable(object):
     def is_quiet(self):
         """Is this user quiet?"""
