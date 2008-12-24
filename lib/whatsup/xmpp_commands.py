@@ -72,19 +72,15 @@ class WatchRequired(BaseCommand):
 
     @arg_required(is_a_url)
     def __call__(self, user, prot, args, session):
-        if self.has_valid_args(args):
-            a=args.split(' ', 1)
-            newarg=None
-            if len(a) > 1: newarg=a[1]
-            try:
-                watch=session.query(models.Watch).filter_by(
-                    url=a[0]).filter_by(user_id=user.id).one()
-                self.process(user, prot, watch, newarg, session)
-            except exc.NoResultFound:
-                prot.send_plain(user.jid, "Cannot find watch for %s" % a[0])
-        else:
-            prot.send_plain(user.jid, "Arguments required for %s:\n%s"
-                % (self.name, self.extended_help))
+        a=args.split(' ', 1)
+        newarg=None
+        if len(a) > 1: newarg=a[1]
+        try:
+            watch=session.query(models.Watch).filter_by(
+                url=a[0]).filter_by(user_id=user.id).one()
+            self.process(user, prot, watch, newarg, session)
+        except exc.NoResultFound:
+            prot.send_plain(user.jid, "Cannot find watch for %s" % a[0])
 
     def process(self, user, prot, watch, args, session):
         raise NotImplementedError()
