@@ -1,0 +1,3 @@
+[submodule "lib/wokkel"]
+	path = lib/wokkel
+	url = git://github.com/dustin/wokkel.git
