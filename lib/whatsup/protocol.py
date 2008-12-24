@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-from twisted.internet import task
 from twisted.words.xish import domish
 from twisted.words.protocols.jabber.jid import JID
 from wokkel.xmppim import MessageProtocol, PresenceClientProtocol
 from wokkel.xmppim import AvailablePresence
-from wokkel.client import XMPPHandler
 
 import xmpp_commands
 import config
@@ -136,21 +134,3 @@ But I can do more.  Type "help" for more info.
         self.unsubscribe(entity)
         self.unsubscribed(entity)
         self.update_presence()
-
-# From https://mailman.ik.nu/pipermail/twisted-jabber/2008-October/000171.html
-class KeepAlive(XMPPHandler):
-
-    interval = 300
-    lc = None
-
-    def connectionInitialized(self):
-        self.lc = task.LoopingCall(self.ping)
-        self.lc.start(self.interval)
-
-    def connectionLost(self, *args):
-        if self.lc:
-            self.lc.stop()
-
-    def ping(self):
-        print "Stayin' alive"
-        self.send(" ")

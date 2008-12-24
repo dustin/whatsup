@@ -7,6 +7,7 @@ from twisted.internet import task, reactor
 from twisted.words.protocols.jabber import jid
 from wokkel.client import XMPPClient
 from wokkel.generic import VersionHandler
+from wokkel.keepalive import KeepAlive
 
 from whatsup import config
 from whatsup import protocol
@@ -20,7 +21,7 @@ xmppclient.logTraffic = False
 whatsup=protocol.WhatsupProtocol()
 whatsup.setHandlerParent(xmppclient)
 VersionHandler('Whatsup', config.VERSION).setHandlerParent(xmppclient)
-protocol.KeepAlive().setHandlerParent(xmppclient)
+KeepAlive().setHandlerParent(xmppclient)
 xmppclient.setServiceParent(application)
 
 site_checker = scheduling.CheckSites(whatsup)
