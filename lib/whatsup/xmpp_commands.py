@@ -141,6 +141,7 @@ class HelpCommand(BaseCommand):
         else:
             for k in sorted(all_commands.keys()):
                 rv.append('%s\t%s' % (k, all_commands[k].help))
+        rv.append("\nFor more help, see http://dustin.github.com/whatsup/")
         prot.send_plain(user.jid, "\n".join(rv))
 
 class WatchCommand(BaseCommand):
