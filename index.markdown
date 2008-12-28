@@ -2,6 +2,16 @@
 layout: default
 title: dustin/whatsup @ GitHub
 ---
+
+<div class="download">
+  <a href="http://github.com/dustin/twitterspy/zipball/master">
+    <img alt="zip" width="90"
+    src="http://github.com/images/modules/download/zip.png"/></a>
+  <a href="http://github.com/dustin/twitterspy/tarball/master">
+  <img alt="tar" width="90"
+    src="http://github.com/images/modules/download/tar.png"/></a>
+</div>
+
 Whatsup monitors web pages for you while you're online and lets you know
 that they're operational and returning content that is interesting to
 you.
